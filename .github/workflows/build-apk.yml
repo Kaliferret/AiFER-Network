@@ -47,9 +47,8 @@ jobs:
         run: flutter pub get
         
       - name: Analyze code for errors (non-blocking)
-        run: |
-          flutter analyze || echo "Analysis failed with warnings, continuing with build..."
-          continue-on-error: true
+        run: flutter analyze || echo "Analysis failed with warnings, continuing with build..."
+        continue-on-error: true
         
       - name: Build APK (release)
         run: |
