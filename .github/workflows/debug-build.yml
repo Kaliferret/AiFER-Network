@@ -1,0 +1,49 @@
+name: Debug Build Process
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          
+      - name: Get dependencies
+        run: |
+          sed -i 's/sdk: "^3.6.0"/sdk: ">=3.5.0 <4.0.0"/' pubspec.yaml
+          flutter pub get
+          
+      - name: Run Flutter Build
+        run: |
+          echo "=== Running flutter build apk --release ==="
+          flutter build apk --release 2>&1 | tee build-output.log
+          
+      - name: Check Output
+        run: |
+          echo "=== Build Output Log ==="
+          cat build-output.log
+          echo ""
+          echo "=== All files in workspace ==="
+          find . -type f -name "*.apk" 2>/dev/null || echo "No APK files found"
+          echo ""
+          echo "=== Build directory contents ==="
+          ls -la build/ 2>/dev/null || echo "No build directory"
+          echo ""
+          echo "=== Flutter build command exit code ==="
+          echo $?
+          
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            build-output.log
+            build/
+          if-no-files-found: warn
