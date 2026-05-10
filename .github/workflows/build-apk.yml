@@ -46,9 +46,19 @@ jobs:
       - name: Get dependencies (after fix)
         run: flutter pub get
         
-      - name: Build APK (release)
-        run: flutter build apk --release
+      - name: Analyze code for errors
+        run: flutter analyze
         
+      - name: Build APK (release)
+        run: |
+          flutter build apk --release --verbose 2>&1 | tee build.log
+        
+      - name: Show build log if failed
+        if: failure()
+        run: |
+          echo "=== BUILD FAILED ==="
+          tail -200 build.log || echo "No build log found"
+          
       - name: Get APK path
         id: apk-path
         run: |
