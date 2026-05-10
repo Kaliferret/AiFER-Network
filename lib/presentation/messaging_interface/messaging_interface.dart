@@ -66,7 +66,6 @@ class _MessagingInterfaceState extends State<MessagingInterface>
 
   /// Load/error flags so the UI can show shimmer / retry card instead of
   /// mid-paint blanks.
-  bool _isLoading = true;
   String? _loadError;
 
   /// Live network status, refreshed from `FERFrequencyHopping`.
