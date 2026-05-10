@@ -37,6 +37,10 @@ jobs:
           flutter --version
           flutter doctor -v
           
+      - name: Create local.properties
+        run: |
+          echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
+          
       - name: Get dependencies
         run: flutter pub get
         
@@ -44,56 +48,51 @@ jobs:
         run: |
           # Temporarily relax SDK constraint to allow Flutter 3.24.5 (Dart 3.5.4)
           sed -i 's/sdk: "^3.6.0"/sdk: ">=3.5.0 <4.0.0"/' pubspec.yaml
+          flutter pub get
           
-      - name: Get dependencies (after fix)
-        run: flutter pub get
-        
+      - name: Accept Android Licenses
+        run: |
+          yes | flutter doctor --android-licenses || true
+          
       - name: Analyze code for errors (non-blocking)
         run: flutter analyze || echo "Analysis completed with warnings"
         continue-on-error: true
         
-      - name: Build APK (debug) first to verify
-        run: |
-          echo "=== Building DEBUG APK ==="
-          flutter build apk --debug 2>&1 | tee build-debug.log
-          echo "=== DEBUG APK Build Complete ==="
-          
-      - name: Find DEBUG APK
-        run: |
-          echo "=== Searching for DEBUG APK files ==="
-          find . -name "*.apk" -type f -exec ls -lh {} \;
-          echo ""
-          echo "=== Build directory tree ==="
-          find build -type d | head -20
-          
-      - name: Upload DEBUG APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: fer-network-debug-apk
-          path: |
-            **/*.apk
-          retention-days: 90
-          if-no-files-found: warn
-          
       - name: Build APK (release)
         run: |
           echo "=== Building RELEASE APK ==="
-          flutter build apk --release 2>&1 | tee build-release.log
+          flutter build apk --release --verbose 2>&1 | tee build-release.log
           echo "=== RELEASE APK Build Complete ==="
+          echo ""
+          echo "=== Listing build outputs ==="
+          ls -la build/app/outputs/flutter-apk/ || echo "Standard path not found"
+          find build -name "*.apk" -type f || echo "No APKs found in build/"
           
-      - name: Find RELEASE APK
+      - name: Find and List APK files
+        id: find-apk
         run: |
-          echo "=== Searching for RELEASE APK files ==="
-          find . -name "*.apk" -type f -exec ls -lh {} \;
+          echo "=== Searching for APK files ==="
+          APK_FILES=$(find . -name "*.apk" -type f)
+          if [ -n "$APK_FILES" ]; then
+            echo "Found APK files:"
+            echo "$APK_FILES"
+            find . -name "*.apk" -type f -exec ls -lh {} \;
+          else
+            echo "No APK files found!"
+            echo "=== Build directory structure ==="
+            find build -type f 2>/dev/null | head -50 || echo "No build directory"
+          fi
+          echo "apk_found=$(echo "$APK_FILES" | wc -l)" >> $GITHUB_OUTPUT
           
       - name: Upload RELEASE APK
         uses: actions/upload-artifact@v4
         with:
           name: fer-network-release-apk
           path: |
+            build/app/outputs/flutter-apk/*.apk
             **/*.apk
           retention-days: 90
-          if-no-files-found: warn
+          if-no-files-found: error
           
       - name: Create Release Summary
         if: always()
@@ -106,7 +105,7 @@ jobs:
           echo "1. Go to the **Actions** tab in this repository" >> $GITHUB_STEP_SUMMARY
           echo "2. Click on this workflow run" >> $GITHUB_STEP_SUMMARY
           echo "3. Scroll down to **Artifacts**" >> $GITHUB_STEP_SUMMARY
-          echo "4. Download either \`fer-network-debug-apk\` or \`fer-network-release-apk\`" >> $GITHUB_STEP_SUMMARY
+          echo "4. Download \`fer-network-release-apk\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Installation:" >> $GITHUB_STEP_SUMMARY
           echo "1. Download the APK" >> $GITHUB_STEP_SUMMARY

@@ -8,9 +8,24 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(':app')
+    
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            // Ensure all Android projects have compileSdk set
+            project.android.compileSdkVersion 35
+            
+            // Set default namespace if not set (for older plugins)
+            if (project.android.namespace == null) {
+                def manifest = file("${project.projectDir}/src/main/AndroidManifest.xml")
+                if (manifest.exists()) {
+                    def packageName = new XmlParser().parse(manifest).attribute('package')
+                    if (packageName != null) {
+                        project.android.namespace = packageName
+                    }
+                }
+            }
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
