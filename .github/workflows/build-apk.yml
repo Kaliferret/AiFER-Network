@@ -33,8 +33,10 @@ jobs:
           cache: true
           
       - name: Verify Flutter installation
-        run: flutter --version
-        
+        run: |
+          flutter --version
+          flutter doctor -v
+          
       - name: Get dependencies
         run: flutter pub get
         
@@ -50,26 +52,46 @@ jobs:
         run: flutter analyze || echo "Analysis completed with warnings"
         continue-on-error: true
         
-      - name: Build APK (release)
+      - name: Build APK (debug) first to verify
         run: |
-          flutter build apk --release --verbose 2>&1 | tee build.log
+          echo "=== Building DEBUG APK ==="
+          flutter build apk --debug 2>&1 | tee build-debug.log
+          echo "=== DEBUG APK Build Complete ==="
           
-      - name: Find and Display APK
+      - name: Find DEBUG APK
         run: |
-          echo "=== Searching for APK files ==="
+          echo "=== Searching for DEBUG APK files ==="
           find . -name "*.apk" -type f -exec ls -lh {} \;
           echo ""
-          echo "=== Build directory structure ==="
-          ls -la build/ || echo "No build directory"
-          ls -la build/app/ || echo "No build/app directory"
+          echo "=== Build directory tree ==="
+          find build -type d | head -20
           
-      - name: Upload APK artifact
+      - name: Upload DEBUG APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fer-network-debug-apk
+          path: |
+            **/*.apk
+          retention-days: 90
+          if-no-files-found: warn
+          
+      - name: Build APK (release)
+        run: |
+          echo "=== Building RELEASE APK ==="
+          flutter build apk --release 2>&1 | tee build-release.log
+          echo "=== RELEASE APK Build Complete ==="
+          
+      - name: Find RELEASE APK
+        run: |
+          echo "=== Searching for RELEASE APK files ==="
+          find . -name "*.apk" -type f -exec ls -lh {} \;
+          
+      - name: Upload RELEASE APK
         uses: actions/upload-artifact@v4
         with:
           name: fer-network-release-apk
           path: |
             **/*.apk
-            build/app/outputs/flutter-apk/*.apk
           retention-days: 90
           if-no-files-found: warn
           
@@ -84,7 +106,7 @@ jobs:
           echo "1. Go to the **Actions** tab in this repository" >> $GITHUB_STEP_SUMMARY
           echo "2. Click on this workflow run" >> $GITHUB_STEP_SUMMARY
           echo "3. Scroll down to **Artifacts**" >> $GITHUB_STEP_SUMMARY
-          echo "4. Download \`fer-network-release-apk\`" >> $GITHUB_STEP_SUMMARY
+          echo "4. Download either \`fer-network-debug-apk\` or \`fer-network-release-apk\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Installation:" >> $GITHUB_STEP_SUMMARY
           echo "1. Download the APK" >> $GITHUB_STEP_SUMMARY
