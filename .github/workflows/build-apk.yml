@@ -56,7 +56,27 @@ jobs:
       - name: Build APK (release) with verbose output
         run: |
           echo "=== Starting APK Build ==="
+          echo "Current directory: $(pwd)"
+          echo "Pubspec.yaml exists: $([ -f pubspec.yaml ] && echo 'YES')"
+          
+          # Try building APK
           flutter build apk --release --verbose 2>&1 | tee build.log
+          BUILD_STATUS=$?
+          echo "=== APK Build EXIT CODE: $BUILD_STATUS ==="
+          
+          if [ $BUILD_STATUS -ne 0 ]; then
+            echo "::warning::Flutter build APK command failed with exit code $BUILD_STATUS"
+            echo "::warning::Last 100 lines of build log:"
+            tail -100 build.log
+            
+            # Try building for arm64-v8a only as fallback
+            echo ""
+            echo "=== Trying fallback build for arm64-v8a ==="
+            flutter build apk --release --target-platform android-arm64 2>&1 | tee build-arm64.log
+            BUILD_STATUS=$?
+            echo "=== Fallback build EXIT CODE: $BUILD_STATUS ==="
+          fi
+          
           echo "=== APK Build Complete ==="
           
       - name: Show build log
