@@ -33,8 +33,11 @@ jobs:
           cache: true
           
       - name: Verify Flutter installation
-        run: flutter --version
-        
+        run: |
+          flutter --version
+          echo "Flutter SDK location: $(which flutter)"
+          flutter doctor -v
+          
       - name: Get dependencies
         run: flutter pub get
         
@@ -47,57 +50,95 @@ jobs:
         run: flutter pub get
         
       - name: Analyze code for errors (non-blocking)
-        run: flutter analyze || echo "Analysis failed with warnings, continuing with build..."
+        run: flutter analyze || echo "Analysis completed with warnings"
         continue-on-error: true
         
-      - name: Build APK (release)
+      - name: Build APK (release) with verbose output
         run: |
+          echo "=== Starting APK Build ==="
           flutter build apk --release --verbose 2>&1 | tee build.log
-        
-      - name: Show build log if failed
-        if: failure()
-        run: |
-          echo "=== BUILD FAILED ==="
-          tail -200 build.log || echo "No build log found"
+          echo "=== APK Build Complete ==="
           
-      - name: Find and list all APK files
+      - name: Show build log
+        if: always()
+        run: |
+          echo "=== Last 50 lines of build log ==="
+          tail -50 build.log || echo "No build log found"
+          
+      - name: List all build directories
+        if: always()
+        run: |
+          echo "=== Root directory contents ==="
+          ls -la
+          echo ""
+          echo "=== Build directory structure ==="
+          find build -type f -name "*.apk" 2>/dev/null || echo "No APK files found in build/ directory"
+          echo ""
+          echo "=== All .apk files in workspace ==="
+          find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found anywhere"
+          echo ""
+          echo "=== Build directory tree ==="
+          tree -L 5 build/ 2>/dev/null || find build -type d | head -20 || echo "Could not list build directory"
+          
+      - name: Verify APK exists and get details
+        id: apk-check
         run: |
           echo "=== Searching for APK files ==="
-          find . -name "*.apk" -type f
-          echo "=== Build directory structure ==="
-          ls -la build/ || echo "No build directory"
-          ls -la build/app/ || echo "No build/app directory"
-          ls -la build/app/outputs/ || echo "No build/app/outputs directory"
-          ls -la build/app/outputs/flutter-apk/ || echo "No build/app/outputs/flutter-apk directory"
+          APK_FILES=$(find . -name "*.apk" -type f)
+          APK_COUNT=$(echo "$APK_FILES" | wc -l)
+          echo "Found $APK_COUNT APK file(s)"
+          echo "$APK_FILES"
+          
+          if [ -z "$APK_FILES" ]; then
+            echo "::error::No APK files were created during the build!"
+            exit 1
+          fi
+          
+          APK_PATH=$(echo "$APK_FILES" | head -1)
+          echo "Using APK at: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error::APK file path exists but file not found!"
+            exit 1
+          fi
+          
+          APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
+          echo "APK size: $APK_SIZE"
+          echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
           
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: fer-network-release-apk
-          path: "**/*.apk"
+          path: ${{ steps.apk-check.outputs.apk_path }}
           retention-days: 90
+          if-no-files-found: error
           
       - name: Create Release Summary
+        if: always()
         run: |
-          echo "## 📱 FER Network APK Built Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "## 📱 FER Network APK Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Download Instructions:" >> $GITHUB_STEP_SUMMARY
-          echo "1. Go to the **Actions** tab in this repository" >> $GITHUB_STEP_SUMMARY
-          echo "2. Click on this workflow run" >> $GITHUB_STEP_SUMMARY
-          echo "3. Scroll down to **Artifacts**" >> $GITHUB_STEP_SUMMARY
-          echo "4. Download \`fer-network-release-apk\`" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### APK Details:" >> $GITHUB_STEP_SUMMARY
-          echo "- **File:** \`app-release.apk\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Type:** Release build (optimized, no debug symbols)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Target:** Android (arm64-v8a, armeabi-v7a, x86_64)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Min SDK:** Android 5.0 (Lollipop, API 21)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Installation:" >> $GITHUB_STEP_SUMMARY
-          echo "1. Download the APK" >> $GITHUB_STEP_SUMMARY
-          echo "2. Enable **Install from Unknown Sources** in Android Settings" >> $GITHUB_STEP_SUMMARY
-          echo "3. Tap the APK file to install" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Verification:" >> $GITHUB_STEP_SUMMARY
-          echo "- APK Size: \$(du -h build/app/outputs/flutter-apk/app-release.apk | cut -f1)" >> $GITHUB_STEP_SUMMARY
-          echo "- SHA256: \$(sha256sum build/app/outputs/flutter-apk/app-release.apk | cut -d' ' -f1)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.apk-check.outputs.apk_path }}" != "" ]; then
+            echo "- **Path:** \`${{ steps.apk-check.outputs.apk_path }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Size:** ${{ steps.apk-check.outputs.apk_size }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Download Instructions:" >> $GITHUB_STEP_SUMMARY
+            echo "1. Go to the **Actions** tab in this repository" >> $GITHUB_STEP_SUMMARY
+            echo "2. Click on this workflow run" >> $GITHUB_STEP_SUMMARY
+            echo "3. Scroll down to **Artifacts**" >> $GITHUB_STEP_SUMMARY
+            echo "4. Download \`fer-network-release-apk\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Installation:" >> $GITHUB_STEP_SUMMARY
+            echo "1. Download the APK" >> $GITHUB_STEP_SUMMARY
+            echo "2. Enable **Install from Unknown Sources** in Android Settings" >> $GITHUB_STEP_SUMMARY
+            echo "3. Tap the APK file to install" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ No APK file was created during the build" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please check the build logs above for details." >> $GITHUB_STEP_SUMMARY
+          fi
