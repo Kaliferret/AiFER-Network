@@ -1,0 +1,72 @@
+name: Build FER Network APK (Gradle)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.24.5'
+          cache: true
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Fix SDK constraint
+        run: sed -i 's/sdk: "^3.6.0"/sdk: ">=3.5.0 <4.0.0"/' pubspec.yaml
+          
+      - name: Get dependencies (after fix)
+        run: flutter pub get
+        
+      - name: Build APK using Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace
+          cd ..
+          
+      - name: Find APK
+        run: |
+          echo "=== Searching for APK files ==="
+          find . -name "*.apk" -type f -exec ls -lh {} \;
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fer-network-release-apk
+          path: |
+            **/*.apk
+            android/app/build/outputs/apk/release/*.apk
+          retention-days: 90
+          if-no-files-found: warn
+          
+      - name: Create Release Summary
+        if: always()
+        run: |
+          echo "## 📱 FER Network APK" >> $GITHUB_STEP_SUMMARY
+          echo "Build Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download from Artifacts or Releases tab" >> $GITHUB_STEP_SUMMARY
