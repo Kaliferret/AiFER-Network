@@ -60,17 +60,21 @@ jobs:
           echo "=== BUILD FAILED ==="
           tail -200 build.log || echo "No build log found"
           
-      - name: Get APK path
-        id: apk-path
+      - name: Find and list all APK files
         run: |
-          echo "path=$(ls -1 build/app/outputs/flutter-apk/app-release.apk)" >> $GITHUB_OUTPUT
-          echo "name=$(basename build/app/outputs/flutter-apk/app-release.apk)" >> $GITHUB_OUTPUT
+          echo "=== Searching for APK files ==="
+          find . -name "*.apk" -type f
+          echo "=== Build directory structure ==="
+          ls -la build/ || echo "No build directory"
+          ls -la build/app/ || echo "No build/app directory"
+          ls -la build/app/outputs/ || echo "No build/app/outputs directory"
+          ls -la build/app/outputs/flutter-apk/ || echo "No build/app/outputs/flutter-apk directory"
           
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: fer-network-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: "**/*.apk"
           retention-days: 90
           
       - name: Create Release Summary
