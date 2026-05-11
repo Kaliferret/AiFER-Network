@@ -6,8 +6,26 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
+subprojects {
+    afterEvaluate {
+        // Provide flutter extension properties that plugins like app_links expect
+        if (project.hasProperty('android')) {
+            project.android.compileSdkVersion 35
+            if (project.android.defaultConfig != null) {
+                if (project.android.defaultConfig.minSdkVersion == null) {
+                    project.android.defaultConfig.minSdkVersion 21
+                }
+                if (project.android.defaultConfig.targetSdkVersion == null) {
+                    project.android.defaultConfig.targetSdkVersion 34
+                }
+            }
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
