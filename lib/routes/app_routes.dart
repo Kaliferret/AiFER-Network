@@ -23,6 +23,10 @@ import '../presentation/ferret_mail/ferret_mail_screen.dart';
 import '../presentation/ferret_gallery/ferret_gallery_screen.dart';
 import '../presentation/ferret_calendar/ferret_calendar_screen.dart';
 import '../presentation/ferret_media/ferret_media_screen.dart';
+import '../presentation/fer_code/fer_code_screen.dart';
+import '../presentation/fer_trade/fer_trade_screen.dart';
+import '../presentation/fer_chain/fer_chain_screen.dart';
+import '../presentation/marketplace/marketplace_screen.dart';
 
 class AppRoutes {
   static const String initialRoute = '/';
@@ -92,5 +96,9 @@ class AppRoutes {
     ferretGallery: (context) => const FerretGalleryScreen(),
     ferretCalendar: (context) => const FerretCalendarScreen(),
     ferretMedia: (context) => const FerretMediaScreen(),
+    ferCode: (context) => const FerCodeScreen(),
+    ferTrade: (context) => const FerTradeScreen(),
+    ferChain: (context) => const FerChainScreen(),
+    marketplace: (context) => const MarketplaceScreen(),
   };
 }

@@ -419,26 +419,26 @@ class _SlideOutMenuState extends State<SlideOutMenu>
     MenuItem(
       title: 'FERCode',
       icon: Icons.code,
-      route: null, // Not yet implemented
+      route: AppRoutes.ferCode,
       color: Color(0xFF607D8B), // Blue grey
     ),
     MenuItem(
       title: 'FERTrade',
       icon: Icons.show_chart,
-      route: null, // Not yet implemented
+      route: AppRoutes.ferTrade,
       color: Color(0xFF7C4DFF), // Deep purple
       badge: 'PRO',
     ),
     MenuItem(
       title: 'FERChain',
       icon: Icons.link,
-      route: AppRoutes.ferexplorer,
+      route: AppRoutes.ferChain,
       color: Color(0xFF00B0FF), // Light blue
     ),
     MenuItem(
       title: 'Marketplace',
       icon: Icons.store,
-      route: null, // Not yet implemented
+      route: AppRoutes.marketplace,
       color: Color(0xFFFFAB40), // Amber
     ),
   ];
