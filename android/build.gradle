@@ -8,20 +8,20 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-    
-    // Apply flutter extension properties for plugins that expect it
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            // Fix compileSdk for plugins that don't specify it
-            try {
-                if (project.android.compileSdkVersion == null) {
-                    project.android.compileSdkVersion 35
-                }
-            } catch (Exception ignored) {
-                // Property may not be readable, set it anyway
+}
+
+// Provide flutter extension properties for plugins that expect them
+subprojects { subproject ->
+    afterEvaluate { 
+        // Add default SDK versions for plugins that reference flutter.compileSdkVersion
+        if (subproject.hasProperty('android')) {
+            def androidExt = subproject.extensions.findByName('android')
+            if (androidExt != null) {
                 try {
-                    project.android.compileSdkVersion 35
-                } catch (Exception ignored2) {}
+                    if (androidExt.compileSdkVersion == null) {
+                        androidExt.compileSdkVersion = 35
+                    }
+                } catch (Exception ignored) {}
             }
         }
     }
