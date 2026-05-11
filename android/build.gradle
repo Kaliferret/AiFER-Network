@@ -9,20 +9,19 @@ rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     
+    // Apply flutter extension properties for plugins that expect it
     afterEvaluate { project ->
         if (project.hasProperty('android')) {
-            // Ensure all Android projects have compileSdk set
-            project.android.compileSdkVersion 35
-            
-            // Set default namespace if not set (for older plugins)
-            if (project.android.namespace == null) {
-                def manifest = file("${project.projectDir}/src/main/AndroidManifest.xml")
-                if (manifest.exists()) {
-                    def packageName = new XmlParser().parse(manifest).attribute('package')
-                    if (packageName != null) {
-                        project.android.namespace = packageName
-                    }
+            // Fix compileSdk for plugins that don't specify it
+            try {
+                if (project.android.compileSdkVersion == null) {
+                    project.android.compileSdkVersion 35
                 }
+            } catch (Exception ignored) {
+                // Property may not be readable, set it anyway
+                try {
+                    project.android.compileSdkVersion 35
+                } catch (Exception ignored2) {}
             }
         }
     }
