@@ -27,6 +27,9 @@ import '../presentation/fer_code/fer_code_screen.dart';
 import '../presentation/fer_trade/fer_trade_screen.dart';
 import '../presentation/fer_chain/fer_chain_screen.dart';
 import '../presentation/marketplace/marketplace_screen.dart';
+import '../presentation/mesh_networking/mesh_networking_screen.dart';
+import '../presentation/decentralized_storage/decentralized_storage_screen.dart';
+import '../presentation/federated_ai/federated_ai_screen.dart';
 
 class AppRoutes {
   static const String initialRoute = '/';
@@ -100,5 +103,8 @@ class AppRoutes {
     ferTrade: (context) => const FerTradeScreen(),
     ferChain: (context) => const FerChainScreen(),
     marketplace: (context) => const MarketplaceScreen(),
+    meshNetworking: (context) => const MeshNetworkingScreen(),
+    decentralizedStorage: (context) => const DecentralizedStorageScreen(),
+    federatedAI: (context) => const FederatedAIScreen(),
   };
 }

@@ -441,6 +441,25 @@ class _SlideOutMenuState extends State<SlideOutMenu>
       route: AppRoutes.marketplace,
       color: Color(0xFFFFAB40), // Amber
     ),
+    MenuItem(
+      title: 'Mesh Network',
+      icon: Icons.hub,
+      route: AppRoutes.meshNetworking,
+      color: Color(0xFF00E676), // Green
+    ),
+    MenuItem(
+      title: 'Decentralized Storage',
+      icon: Icons.cloud,
+      route: AppRoutes.decentralizedStorage,
+      color: Color(0xFF7C4DFF), // Deep purple
+    ),
+    MenuItem(
+      title: 'Federated AI',
+      icon: Icons.smart_toy,
+      route: AppRoutes.federatedAI,
+      color: Color(0xFFFF4081), // Pink
+      badge: 'AI',
+    ),
   ];
 }
 
