@@ -18,6 +18,11 @@ import '../widgets/ferret_companion.dart';
 import '../widgets/aifer_hud.dart';
 import '../presentation/ferret_files/ferret_files_screen.dart';
 import '../presentation/ferret_notes/ferret_notes_screen.dart';
+import '../presentation/ferret_terminal/ferret_terminal_screen.dart';
+import '../presentation/ferret_mail/ferret_mail_screen.dart';
+import '../presentation/ferret_gallery/ferret_gallery_screen.dart';
+import '../presentation/ferret_calendar/ferret_calendar_screen.dart';
+import '../presentation/ferret_media/ferret_media_screen.dart';
 
 class AppRoutes {
   static const String initialRoute = '/';
@@ -48,6 +53,12 @@ class AppRoutes {
   // Phase 3: OS Apps routes
   static const String ferretFiles = '/ferret-files';
   static const String ferretNotes = '/ferret-notes';
+  // Phase 3-2: OS Apps routes
+  static const String ferretTerminal = '/ferret-terminal';
+  static const String ferretMail = '/ferret-mail';
+  static const String ferretGallery = '/ferret-gallery';
+  static const String ferretCalendar = '/ferret-calendar';
+  static const String ferretMedia = '/ferret-media';
 
   static Map<String, WidgetBuilder> routes = {
     splashScreen: (context) => const SplashScreen(),
@@ -75,5 +86,11 @@ class AppRoutes {
     // Phase 3: OS Apps routes
     ferretFiles: (context) => const FerretFilesScreen(),
     ferretNotes: (context) => const FerretNotesScreen(),
+    // Phase 3-2: OS Apps routes
+    ferretTerminal: (context) => const FerretTerminalScreen(),
+    ferretMail: (context) => const FerretMailScreen(),
+    ferretGallery: (context) => const FerretGalleryScreen(),
+    ferretCalendar: (context) => const FerretCalendarScreen(),
+    ferretMedia: (context) => const FerretMediaScreen(),
   };
 }

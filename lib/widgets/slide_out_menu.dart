@@ -371,43 +371,43 @@ class _SlideOutMenuState extends State<SlideOutMenu>
     MenuItem(
       title: 'Files',
       icon: Icons.folder,
-      route: AppRoutes.ferretFiles
+      route: AppRoutes.ferretFiles,
       color: Color(0xFF40C4FF), // Sky blue
     ),
     MenuItem(
       title: 'Notes',
       icon: Icons.note,
-      route: AppRoutes.ferretNotes
+      route: AppRoutes.ferretNotes,
       color: Color(0xFFFF6E40), // Deep orange
     ),
     MenuItem(
       title: 'Terminal',
       icon: Icons.terminal,
-      route: null, // Not yet implemented
+      route: AppRoutes.ferretTerminal,
       color: Color(0xFFFFEB3B), // Yellow
     ),
     MenuItem(
       title: 'Mail',
       icon: Icons.mail,
-      route: null, // Not yet implemented
+      route: AppRoutes.ferretMail,
       color: Color(0xFF69F0AE), // Light green
     ),
     MenuItem(
       title: 'Gallery',
       icon: Icons.photo_library,
-      route: null, // Not yet implemented
+      route: AppRoutes.ferretGallery,
       color: Color(0xFFE040FB), // Purple
     ),
     MenuItem(
       title: 'Calendar',
       icon: Icons.calendar_today,
-      route: null, // Not yet implemented
+      route: AppRoutes.ferretCalendar,
       color: Color(0xFF536DFE), // Indigo
     ),
     MenuItem(
       title: 'Media',
       icon: Icons.play_circle,
-      route: null, // Not yet implemented
+      route: AppRoutes.ferretMedia,
       color: Color(0xFFFF5252), // Red
     ),
     MenuItem(
