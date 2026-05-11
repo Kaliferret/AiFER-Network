@@ -9,6 +9,16 @@ import '../../services/aiferid_auth_service.dart';
 import '../../services/offline_first_database.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/custom_bottom_bar.dart';
+// Import new mini-games
+import '../games/tic_tac_toe/tic_tac_toe_screen.dart';
+import '../games/connect_four/connect_four_screen.dart';
+import '../games/memory_match/memory_match_screen.dart';
+import '../games/snake/snake_screen.dart';
+import '../games/game_2048/game_2048_screen.dart';
+import '../games/math_racer/math_racer_screen.dart';
+import '../games/word_search/word_search_screen.dart';
+import '../games/bubble_pop/bubble_pop_screen.dart';
+import '../games/fer_world/fer_world_screen.dart';
 
 /// Phase 6 · step 4 — Gaming Hub wired to `OfflineFirstDatabase.FERGamingSession`.
 ///
@@ -57,39 +67,81 @@ class _GamingHubScreenState extends State<GamingHubScreen>
       (sum, s) =>
           sum + ((s.sessionData['playtime_minutes'] as int?) ?? 0));
 
-  // Catalog (displayed on the middle tab)
+  // Catalog (displayed on the middle tab) - Updated with AIFER v11 mini-games
   static const List<_GameCatalogEntry> _catalog = [
+    // Classic Mini-Games
     _GameCatalogEntry(
-      id: 'fer.arena.v1',
-      name: 'FER Arena',
-      tag: 'Multiplayer',
-      tagline: 'Frequency-hop combat · 2–16 players',
-      color: AppTheme.tileGreen,
-      icon: Icons.sports_esports_rounded,
+      id: 'game.tic_tac_toe',
+      name: 'Tic-Tac-Toe',
+      tag: 'Classic',
+      tagline: '3x3 grid · X vs O · Score tracking',
+      color: Color(0xFF00E5FF),
+      icon: Icons.grid_on_rounded,
     ),
     _GameCatalogEntry(
-      id: 'fer.puzzle.lattice',
-      name: 'Lattice',
+      id: 'game.connect_four',
+      name: 'Connect Four',
+      tag: 'Strategy',
+      tagline: '6x7 grid · Drop pieces · Win detection',
+      color: Color(0xFF448AFF),
+      icon: Icons.view_column_rounded,
+    ),
+    _GameCatalogEntry(
+      id: 'game.memory_match',
+      name: 'Memory Match',
       tag: 'Puzzle',
-      tagline: 'Solve n=512 crypto puzzles · singleplayer',
-      color: AppTheme.tilePurple,
-      icon: Icons.extension_rounded,
-    ),
-    _GameCatalogEntry(
-      id: 'fer.trivia.network',
-      name: 'Network Trivia',
-      tag: 'Trivia',
-      tagline: 'FER Network lore · earn FER',
-      color: AppTheme.tileBlue,
+      tagline: '16 cards · 8 pairs · Find matches',
+      color: Color(0xFF39FF14),
       icon: Icons.psychology_rounded,
     ),
     _GameCatalogEntry(
-      id: 'fer.race.hop',
-      name: 'Hop Race',
+      id: 'game.snake',
+      name: 'Snake',
       tag: 'Arcade',
-      tagline: 'Ride the 2.4→5.8 GHz spectrum',
-      color: AppTheme.tilePink,
-      icon: Icons.speed_rounded,
+      tagline: 'Classic snake · Eat food · Grow longer',
+      color: Color(0xFF7B61FF),
+      icon: Icons.show_chart_rounded,
+    ),
+    _GameCatalogEntry(
+      id: 'game.2048',
+      name: '2048',
+      tag: 'Puzzle',
+      tagline: 'Merge tiles · Reach 2048 · Score high',
+      color: Color(0xFFE040FB),
+      icon: Icons.grid_view_rounded,
+    ),
+    _GameCatalogEntry(
+      id: 'game.math_racer',
+      name: 'Math Racer',
+      tag: 'Educational',
+      tagline: 'Fast math · 60s timer · Streak bonuses',
+      color: Color(0xFFFFD740),
+      icon: Icons.calculate_rounded,
+    ),
+    _GameCatalogEntry(
+      id: 'game.word_search',
+      name: 'Word Search',
+      tag: 'Puzzle',
+      tagline: '10x10 grid · Find 8 words · Multi-direction',
+      color: Color(0xFF69F0AE),
+      icon: Icons.text_fields_rounded,
+    ),
+    _GameCatalogEntry(
+      id: 'game.bubble_pop',
+      name: 'Bubble Pop',
+      tag: 'Arcade',
+      tagline: 'Pop groups · Gravity effect · Score high',
+      color: Color(0xFFFF5252),
+      icon: Icons.circle_rounded,
+    ),
+    // FER World
+    _GameCatalogEntry(
+      id: 'game.fer_world_2d',
+      name: 'FER World 2D',
+      tag: 'Metaverse',
+      tagline: '2D open world · Ferret avatar · Coming soon',
+      color: Color(0xFF40C4FF),
+      icon: Icons.public_rounded,
     ),
   ];
 
@@ -156,30 +208,74 @@ class _GamingHubScreenState extends State<GamingHubScreen>
       _toast('Sign in first', ok: false);
       return;
     }
-    final now = DateTime.now();
-    final session = FERGamingSession(
-      id: 'gs-${now.microsecondsSinceEpoch}',
-      gameId: g.id,
-      hostUserId: _userId!,
-      sessionData: {
-        'game_name': g.name,
-        'tag': g.tag,
-        'score': 0,
-        'playtime_minutes': 0,
-        'started_at': now.toIso8601String(),
-      },
-      status: GameSessionStatus.waiting,
-      createdAt: now,
-      updatedAt: now,
-    );
-    try {
-      await _db.storeGamingSession(session);
-      HapticFeedback.mediumImpact();
-      _toast('${g.name} · lobby opened');
-      await _reload();
-      _tabs.animateTo(0);
-    } catch (e) {
-      _toast('Failed to start session: $e', ok: false);
+    
+    // Navigate to the actual game screen based on game ID
+    Widget? gameScreen;
+    switch (g.id) {
+      case 'game.tic_tac_toe':
+        gameScreen = const TicTacToeScreen();
+        break;
+      case 'game.connect_four':
+        gameScreen = const ConnectFourScreen();
+        break;
+      case 'game.memory_match':
+        gameScreen = const MemoryMatchScreen();
+        break;
+      case 'game.snake':
+        gameScreen = const SnakeScreen();
+        break;
+      case 'game.2048':
+        gameScreen = const Game2048Screen();
+        break;
+      case 'game.math_racer':
+        gameScreen = const MathRacerScreen();
+        break;
+      case 'game.word_search':
+        gameScreen = const WordSearchScreen();
+        break;
+      case 'game.bubble_pop':
+        gameScreen = const BubblePopScreen();
+        break;
+      case 'game.fer_world_2d':
+        gameScreen = const FerWorldScreen();
+        break;
+      default:
+        // For placeholder games, use the original session logic
+        final now = DateTime.now();
+        final session = FERGamingSession(
+          id: 'gs-${now.microsecondsSinceEpoch}',
+          gameId: g.id,
+          hostUserId: _userId!,
+          sessionData: {
+            'game_name': g.name,
+            'tag': g.tag,
+            'score': 0,
+            'playtime_minutes': 0,
+            'started_at': now.toIso8601String(),
+          },
+          status: GameSessionStatus.waiting,
+          createdAt: now,
+          updatedAt: now,
+        );
+        try {
+          await _db.storeGamingSession(session);
+          HapticFeedback.mediumImpact();
+          _toast('${g.name} · lobby opened');
+          await _reload();
+          _tabs.animateTo(0);
+          return;
+        } catch (e) {
+          _toast('Failed to start session: $e', ok: false);
+          return;
+        }
+    }
+    
+    // Navigate to the game screen
+    if (gameScreen != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => gameScreen!),
+      );
     }
   }
 
