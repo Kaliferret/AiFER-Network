@@ -14,6 +14,10 @@ import '../presentation/blockchain_wallet_manager/blockchain_wallet_manager_scre
 import '../presentation/admin_panel_dashboard/admin_panel_dashboard.dart';
 import '../presentation/device_settings/device_settings_screen.dart';
 import '../presentation/todo_list/todo_list_screen.dart';
+import '../widgets/ferret_companion.dart';
+import '../widgets/aifer_hud.dart';
+import '../presentation/ferret_files/ferret_files_screen.dart';
+import '../presentation/ferret_notes/ferret_notes_screen.dart';
 
 class AppRoutes {
   static const String initialRoute = '/';
@@ -37,6 +41,13 @@ class AppRoutes {
   static const String adminPanelDashboard = '/admin-panel-dashboard';
   static const String deviceSettings = '/device-settings';
   static const String todoList = '/todo-list';
+  // Phase 1: AIFER v11 Integration routes
+  static const String ferretCompanionDemo = '/ferret-companion-demo';
+  static const String aiferHudDemo = '/aifer-hud-demo';
+  static const String settings = '/settings';
+  // Phase 3: OS Apps routes
+  static const String ferretFiles = '/ferret-files';
+  static const String ferretNotes = '/ferret-notes';
 
   static Map<String, WidgetBuilder> routes = {
     splashScreen: (context) => const SplashScreen(),
@@ -57,5 +68,12 @@ class AppRoutes {
     adminPanelDashboard: (context) => const AdminPanelDashboard(),
     deviceSettings: (context) => const DeviceSettingsScreen(),
     todoList: (context) => const TodoListScreen(),
+    // Phase 1: AIFER v11 Integration routes
+    ferretCompanionDemo: (context) => const FERCompanionDemoScreen(),
+    aiferHudDemo: (context) => const AiFERHUDDemoScreen(),
+    settings: (context) => const DeviceSettingsScreen(),
+    // Phase 3: OS Apps routes
+    ferretFiles: (context) => const FerretFilesScreen(),
+    ferretNotes: (context) => const FerretNotesScreen(),
   };
 }
