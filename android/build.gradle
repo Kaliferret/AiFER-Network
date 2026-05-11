@@ -10,28 +10,6 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
-// Critical fix: provide flutter extension defaults for plugins that reference flutter.compileSdkVersion
-// This must happen BEFORE subproject evaluation
-gradle.projectsLoaded { gradle ->
-    gradle.rootProject.subprojects { subproject ->
-        subproject.beforeEvaluate {
-            // Add the 'flutter' extension to subprojects that don't have it
-            if (!subproject.extensions.findByName('flutter')) {
-                subproject.extensions.create('flutter', FlutterExtension)
-            }
-        }
-    }
-}
-
-// Define the Flutter extension class that provides SDK version properties
-class FlutterExtension {
-    int compileSdkVersion = 35
-    int targetSdkVersion = 35
-    int minSdkVersion = 21
-    int versionCode = 1
-    String versionName = "1.0.0"
-}
-
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # Allows manual trigger from GitHub Actions UI
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -54,6 +54,23 @@ jobs:
       - name: Accept Android Licenses
         run: |
           yes | flutter doctor --android-licenses || true
+          
+      - name: Patch app_links plugin build.gradle
+        run: |
+          # Find the app_links plugin build.gradle and fix the flutter.compileSdkVersion reference
+          APP_LINKS_GRADLE="${HOME}/.pub-cache/hosted/pub.dev/app_links-6.4.1/android/build.gradle"
+          if [ -f "$APP_LINKS_GRADLE" ]; then
+            echo "Patching app_links build.gradle..."
+            echo "Before patch:"
+            grep -n "flutter.compileSdkVersion\|compileSdk.*flutter" "$APP_LINKS_GRADLE" || true
+            sed -i 's/flutter\.compileSdkVersion/35/g' "$APP_LINKS_GRADLE"
+            sed -i 's/flutter\.targetSdkVersion/35/g' "$APP_LINKS_GRADLE"
+            echo "After patch:"
+            grep -n "compileSdk\|targetSdk" "$APP_LINKS_GRADLE" | head -10
+          else
+            echo "app_links build.gradle not found at expected path"
+            find ${HOME}/.pub-cache -name "build.gradle" -path "*/app_links*" 2>/dev/null
+          fi
           
       - name: Analyze code for errors
         run: flutter analyze

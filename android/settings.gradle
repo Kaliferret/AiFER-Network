@@ -23,12 +23,3 @@ plugins {
 }
 
 include ":app"
-
-// Configure all subprojects with default SDK versions
-gradle.beforeProject { project ->
-    project.afterEvaluate {
-        if (project.hasProperty('android')) {
-            project.android.compileSdkVersion 35
-        }
-    }
-}
