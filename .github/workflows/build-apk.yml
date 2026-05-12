@@ -18,12 +18,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
           
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -31,6 +34,8 @@ jobs:
           channel: 'stable'
           flutter-version: '3.24.5'
           cache: true
+          cache-key: 'flutter-3.24.5-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}'
+          cache-path: '${{ env.FLUTTER_ROOT }}/.pub-cache'
           
       - name: Verify Flutter installation
         run: |
@@ -46,35 +51,39 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
-      - name: Fix SDK constraint for Flutter 3.24.5
-        run: |
-          sed -i 's/sdk: "^3.6.0"/sdk: ">=3.5.0 <4.0.0"/' pubspec.yaml
-          flutter pub get
-          
       - name: Accept Android Licenses
         run: |
           yes | flutter doctor --android-licenses || true
           
       - name: Patch app_links plugin build.gradle
         run: |
-          # Find the app_links plugin build.gradle and fix the flutter.compileSdkVersion reference
-          APP_LINKS_GRADLE="${HOME}/.pub-cache/hosted/pub.dev/app_links-6.4.1/android/build.gradle"
-          if [ -f "$APP_LINKS_GRADLE" ]; then
-            echo "Patching app_links build.gradle..."
-            echo "Before patch:"
-            grep -n "flutter.compileSdkVersion\|compileSdk.*flutter" "$APP_LINKS_GRADLE" || true
-            sed -i 's/flutter\.compileSdkVersion/35/g' "$APP_LINKS_GRADLE"
-            sed -i 's/flutter\.targetSdkVersion/35/g' "$APP_LINKS_GRADLE"
-            echo "After patch:"
-            grep -n "compileSdk\|targetSdk" "$APP_LINKS_GRADLE" | head -10
-          else
-            echo "app_links build.gradle not found at expected path"
-            find ${HOME}/.pub-cache -name "build.gradle" -path "*/app_links*" 2>/dev/null
-          fi
+          # Find and patch any app_links plugin build.gradle files
+          find ${HOME}/.pub-cache -name "build.gradle" -path "*app_links*" 2>/dev/null | while read gradle_file; do
+            echo "Patching $gradle_file..."
+            sed -i 's/flutter\.compileSdkVersion/34/g' "$gradle_file" || true
+            sed -i 's/flutter\.targetSdkVersion/34/g' "$gradle_file" || true
+            sed -i 's/flutter\.minSdkVersion/21/g' "$gradle_file" || true
+          done
+          
+      - name: Fix Android build configuration
+        run: |
+          # Ensure gradle wrapper is executable
+          chmod +x android/gradlew
+          
+          # Set Gradle memory
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" >> android/gradle.properties
+          echo "org.gradle.daemon=false" >> android/gradle.properties
+          echo "org.gradle.parallel=true" >> android/gradle.properties
+          echo "org.gradle.caching=true" >> android/gradle.properties
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
           
       - name: Analyze code for errors
         run: flutter analyze
         continue-on-error: true
+        
+      - name: Clean previous builds
+        run: flutter clean
         
       - name: Build APK (release)
         run: |
@@ -89,16 +98,35 @@ jobs:
           echo ""
           echo "=== Build directory contents ==="
           ls -la build/app/outputs/flutter-apk/ 2>/dev/null || echo "Standard output path not found"
+          echo ""
+          echo "=== Checking alternate paths ==="
+          ls -la android/app/build/outputs/apk/release/ 2>/dev/null || echo "Android release path not found"
           
       - name: Upload RELEASE APK
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: fer-network-release-apk
           path: |
             build/app/outputs/flutter-apk/app-release.apk
-            **/*.apk
+            android/app/build/outputs/apk/release/app-release.apk
           retention-days: 90
-          if-no-files-found: error
+          if-no-files-found: warn
+          
+      - name: Build App Bundle (for Google Play)
+        if: success()
+        run: flutter build appbundle --release
+        
+      - name: Upload App Bundle
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: fer-network-appbundle
+          path: |
+            build/app/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 90
+          if-no-files-found: warn
           
       - name: Create Release Summary
         if: always()
@@ -107,13 +135,16 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Build Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Download Instructions:" >> $GITHUB_STEP_SUMMARY
-          echo "1. Go to the **Actions** tab in this repository" >> $GITHUB_STEP_SUMMARY
-          echo "2. Click on this workflow run" >> $GITHUB_STEP_SUMMARY
-          echo "3. Scroll down to **Artifacts**" >> $GITHUB_STEP_SUMMARY
-          echo "4. Download \`fer-network-release-apk\`" >> $GITHUB_STEP_SUMMARY
+          echo "### Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Installation:" >> $GITHUB_STEP_SUMMARY
-          echo "1. Download the APK" >> $GITHUB_STEP_SUMMARY
-          echo "2. Enable **Install from Unknown Sources** in Android Settings" >> $GITHUB_STEP_SUMMARY
-          echo "3. Tap the APK file to install" >> $GITHUB_STEP_SUMMARY
+        
+      - name: Upload build logs if failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build-release.log
+            **/*.log
+          retention-days: 7
+          if-no-files-found: ignore

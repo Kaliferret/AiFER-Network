@@ -25,13 +25,15 @@ plugins {
 include ":app"
 
 // Force all subprojects to use consistent SDK versions
-gradle.beforeProject { project ->
-    project.afterEvaluate {
+allprojects {
+    afterEvaluate { project ->
         if (project.hasProperty('android')) {
-            project.android.compileSdkVersion 35
-            if (project.android.defaultConfig != null) {
-                project.android.defaultConfig.minSdkVersion 21
-                project.android.defaultConfig.targetSdkVersion 34
+            android {
+                compileSdkVersion 35
+                defaultConfig {
+                    minSdkVersion 21
+                    targetSdkVersion 35
+                }
             }
         }
     }
