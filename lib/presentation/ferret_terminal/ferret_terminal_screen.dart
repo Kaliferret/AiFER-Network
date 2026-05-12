@@ -234,7 +234,8 @@ Tip: Use Tab for autocomplete and ↑/↓ for command history''',
       final dir = args[0];
       if (dir == '..') {
         if (_currentDirectory != '/') {
-          _currentDirectory = _currentDirectory.substring(0, _currentDirectory.lastIndexOf('/')) || '/';
+          final newPath = _currentDirectory.substring(0, _currentDirectory.lastIndexOf('/'));
+          _currentDirectory = newPath.isEmpty ? '/' : newPath;
         }
       } else if (dir.startsWith('/')) {
         _currentDirectory = dir;

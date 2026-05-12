@@ -574,7 +574,7 @@ class _FerChainScreenState extends State<FerChainScreen>
         border: Border.all(color: const Color(0xFF00E5FF), width: 2),
       ),
       child: Column(
-        crossAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -727,7 +727,7 @@ class _FerChainScreenState extends State<FerChainScreen>
               ),
               const Spacer(),
               Text(
-                '$stakeM FER',
+                '$stake FER',
                 style: GoogleFonts.firaCode(
                   fontSize: 11.sp,
                   fontWeight: FontWeight.w600,

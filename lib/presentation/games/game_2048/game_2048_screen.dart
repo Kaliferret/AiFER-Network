@@ -12,9 +12,9 @@ class Game2048Screen extends StatefulWidget {
 class _Game2048ScreenState extends State<Game2048Screen>
     with TickerProviderStateMixin {
   late List<List<int>> board;
-  int score;
-  int bestScore;
-  bool gameOver;
+  late int score;
+  late int bestScore;
+  late bool gameOver;
 
   late AnimationController _slideController;
   late Animation<double> _slideAnimation;

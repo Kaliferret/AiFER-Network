@@ -66,6 +66,15 @@ class AppRoutes {
   static const String ferretGallery = '/ferret-gallery';
   static const String ferretCalendar = '/ferret-calendar';
   static const String ferretMedia = '/ferret-media';
+  // Phase 6: Advanced Features routes
+  static const String ferCode = '/fer-code';
+  static const String ferTrade = '/fer-trade';
+  static const String ferChain = '/fer-chain';
+  static const String marketplace = '/marketplace';
+  // Phase 7: Backend & Polish routes
+  static const String meshNetworking = '/mesh-networking';
+  static const String decentralizedStorage = '/decentralized-storage';
+  static const String federatedAI = '/federated-ai';
 
   static Map<String, WidgetBuilder> routes = {
     splashScreen: (context) => const SplashScreen(),

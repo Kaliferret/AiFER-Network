@@ -11,13 +11,13 @@ class ConnectFourScreen extends StatefulWidget {
 
 class _ConnectFourScreenState extends State<ConnectFourScreen>
     with TickerProviderStateMixin {
-  List<List<String>> board;
-  String currentPlayer;
-  String winner;
-  bool gameActive;
-  int player1Wins;
-  int player2Wins;
-  int draws;
+  late List<List<String>> board;
+  late String currentPlayer;
+  late String winner;
+  late bool gameActive;
+  late int player1Wins;
+  late int player2Wins;
+  late int draws;
 
   late AnimationController _dropController;
   late Animation<double> _dropAnimation;

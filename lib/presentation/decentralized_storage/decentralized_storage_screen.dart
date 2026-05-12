@@ -50,7 +50,7 @@ class _DecentralizedStorageScreenState extends State<DecentralizedStorageScreen>
     ),
   ];
 
-  int _get replicationFactor => 3;
+  int get _replicationFactor => 3;
   late TabController _tabController;
 
   @override
@@ -124,8 +124,10 @@ class _DecentralizedStorageScreenState extends State<DecentralizedStorageScreen>
   }
 
   Widget _buildStorageOverview() {
-    final usedGB = (_storageUsed / 1024).toStringAsFixed(2);
-    final totalGB = (_storageTotal / 1024).toStringAsFixed(2);
+    final usedGBNum = _storageUsed / 1024;
+    final totalGBNum = _storageTotal / 1024;
+    final usedGB = usedGBNum.toStringAsFixed(2);
+    final totalGB = totalGBNum.toStringAsFixed(2);
     final percentage = (_storageUsed / _storageTotal * 100).toInt();
 
     return Container(
@@ -212,7 +214,7 @@ class _DecentralizedStorageScreenState extends State<DecentralizedStorageScreen>
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildStorageMetric('Used', '$usedGB GB', Icons.storage),
-              _buildStorageMetric('Free', '${(totalGB - usedGB).toStringAsFixed(2)} GB', Icons.folder_open),
+              _buildStorageMetric('Free', '${(totalGBNum - usedGBNum).toStringAsFixed(2)} GB', Icons.folder_open),
               _buildStorageMetric('Replicas', '$_replicationFactor', Icons.content_copy),
             ],
           ),
@@ -393,8 +395,7 @@ class _DecentralizedStorageScreenState extends State<DecentralizedStorageScreen>
                         style: GoogleFonts.inter(
                           fontSize: 9.sp,
                           color: const Color(0xFF39FF14),
-                          fontFamily: 'monospace',
-                        ),
+                        ).copyWith(fontFamily: 'monospace'),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -826,7 +827,7 @@ class _DecentralizedStorageScreenState extends State<DecentralizedStorageScreen>
                 labelText: 'File Name (optional)',
                 labelStyle: GoogleFonts.inter(color: const Color(0xFF9E9E9E)),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Color(0xFF39FF14).withOpacity(0.3)),
+                  borderSide: BorderSide(color: Color(0xFF39FF14).withOpacity(0.3)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 focusedBorder: OutlineInputBorder(

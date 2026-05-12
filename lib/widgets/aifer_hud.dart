@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
+import 'dart:math';
 
 /// AiFERHUD - Heads-Up Display overlay for system status
 /// This is a placeholder widget for future implementation
@@ -99,10 +100,10 @@ class _AiFERHUDState extends State<AiFERHUD>
       if (mounted) {
         setState(() {
           _batteryLevel = (_batteryLevel + (Random().nextInt(3) - 1))
-              .clamp(0, 100);
+              .clamp(0, 100).toInt();
           _networkStrength = (_networkStrength + (Random().nextInt(5) - 2))
-              .clamp(0, 100);
-          _meshNodes = (_meshNodes + (Random().nextInt(3) - 1)).clamp(0, 100);
+              .clamp(0, 100).toInt();
+          _meshNodes = (_meshNodes + (Random().nextInt(3) - 1)).clamp(0, 100).toInt();
         });
       }
     });

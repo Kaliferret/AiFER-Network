@@ -586,7 +586,7 @@ What do you think?''',
                             fontWeight: email.isUnread
                                 ? FontWeight.w700
                                 : FontWeight.w500,
-                            color: isDark ? Colors.white : Colors.black87,
+                            color: isDark ? Colors.white : Colors.black54,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -617,7 +617,7 @@ What do you think?''',
                       fontWeight: email.isUnread
                           ? FontWeight.w600
                           : FontWeight.normal,
-                      color: isDark ? Colors.white87 : Colors.black87,
+                      color: isDark ? Colors.white70 : Colors.black54,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

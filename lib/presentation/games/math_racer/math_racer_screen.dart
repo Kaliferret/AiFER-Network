@@ -13,14 +13,14 @@ class MathRacerScreen extends StatefulWidget {
 
 class _MathRacerScreenState extends State<MathRacerScreen>
     with TickerProviderStateMixin {
-  String question;
-  int correctAnswer;
-  List<int> options;
-  int score;
-  int streak;
-  double timeLeft;
-  int totalTime;
-  bool gameActive;
+  late String question;
+  late int correctAnswer;
+  late List<int> options;
+  late int score;
+  late int streak;
+  late double timeLeft;
+  late int totalTime;
+  late bool gameActive;
   Timer? gameTimer;
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
@@ -44,7 +44,7 @@ class _MathRacerScreenState extends State<MathRacerScreen>
     score = 0;
     streak = 0;
     totalTime = 60;
-    timeLeft = totalTime;
+    timeLeft = totalTime.toDouble();
     gameActive = true;
     _generateQuestion();
     _startTimer();

@@ -10,13 +10,13 @@ class TicTacToeScreen extends StatefulWidget {
 }
 
 class _TicTacToeScreenState extends State<TicTacToeScreen> with TickerProviderStateMixin {
-  List<String> board;
-  String currentPlayer;
-  String winner;
-  bool gameActive;
-  int xWins;
-  int oWins;
-  int draws;
+  late List<String> board;
+  late String currentPlayer;
+  late String winner;
+  late bool gameActive;
+  late int xWins;
+  late int oWins;
+  late int draws;
 
   late AnimationController _cellController;
   late Animation<double> _cellAnimation;

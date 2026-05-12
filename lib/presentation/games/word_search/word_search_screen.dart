@@ -14,8 +14,8 @@ class _WordSearchScreenState extends State<WordSearchScreen> {
   late List<List<String>> grid;
   late List<String> wordsToFind;
   late List<String> foundWords;
-  List<Point> selectedCells;
-  bool isSelecting;
+  late List<Point> selectedCells;
+  late bool isSelecting;
   
   @override
   void initState() {

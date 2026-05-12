@@ -124,7 +124,7 @@ class AppTheme {
       canvasColor: background,
       cardColor: surfaceElevated,
       dividerColor: divider,
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
@@ -148,7 +148,7 @@ class AppTheme {
       ),
 
       // Cards — rounded 20 px, deep surface
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surfaceElevated,
         elevation: 0,
         shadowColor: Colors.transparent,
@@ -278,7 +278,7 @@ class AppTheme {
           const ProgressIndicatorThemeData(color: primary),
 
       // Tab bar
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: primary,
         unselectedLabelColor: textSecondary,
         indicator: UnderlineTabIndicator(

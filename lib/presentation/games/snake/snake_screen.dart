@@ -16,10 +16,10 @@ class _SnakeScreenState extends State<SnakeScreen> with TickerProviderStateMixin
   late Point food;
   late Direction direction;
   late Timer gameTimer;
-  bool gameActive;
-  bool gameOver;
-  int score;
-  int highScore;
+  late bool gameActive;
+  late bool gameOver;
+  late int score;
+  late int highScore;
 
   final int rows = 20;
   final int columns = 10;
@@ -233,7 +233,7 @@ class _SnakeScreenState extends State<SnakeScreen> with TickerProviderStateMixin
                 style: TextStyle(fontSize: 10),
               );
             }
-            return null;
+            return const SizedBox.shrink();
           },
         ),
       ),

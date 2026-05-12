@@ -11,15 +11,15 @@ class MemoryMatchScreen extends StatefulWidget {
 
 class _MemoryMatchScreenState extends State<MemoryMatchScreen>
     with TickerProviderStateMixin {
-  List<MemoryCard> cards;
-  List<int> flippedCards;
-  bool isChecking;
-  bool gameActive;
-  int moves;
-  int matches;
-  int attempts;
-  int bestScore;
-  bool showAllCards;
+  late List<MemoryCard> cards;
+  late List<int> flippedCards;
+  late bool isChecking;
+  late bool gameActive;
+  late int moves;
+  late int matches;
+  late int attempts;
+  late int bestScore;
+  late bool showAllCards;
 
   late AnimationController _flipController;
   late Animation<double> _flipAnimation;
@@ -354,7 +354,7 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen>
                         style: TextStyle(fontSize: 14.w),
                       )
                     : Icon(
-                        Iconspsychology,
+                        Icons.psychology,
                         color: const Color(0xFF39FF14).withOpacity(0.5),
                         size: 8.w,
                       ),

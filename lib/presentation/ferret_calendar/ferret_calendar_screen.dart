@@ -38,7 +38,7 @@ class FerretCalendarScreen extends StatelessWidget {
           PopupMenuButton<String>(
             onSelected: (value) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$view coming soon!')),
+                SnackBar(content: Text('$value coming soon!')),
               );
             },
             itemBuilder: (context) => [

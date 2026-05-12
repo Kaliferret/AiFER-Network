@@ -24,9 +24,9 @@ class _BubblePopScreenState extends State<BubblePopScreen>
   ];
   
   late List<List<String>> board;
-  int score;
-  int bubblesPopped;
-  GameState gameState;
+  late int score;
+  late int bubblesPopped;
+  late GameState gameState;
   late AnimationController _popController;
   late Animation<double> _popAnimation;
   final Random random = Random();
@@ -255,7 +255,7 @@ class _BubblePopScreenState extends State<BubblePopScreen>
 
   Widget _buildGameOver() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 5.w, bottom: 2.h),
+      margin: EdgeInsets.fromLTRB(5.w, 0, 5.w, 2.h),
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
