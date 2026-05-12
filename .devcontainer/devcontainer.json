@@ -28,10 +28,16 @@
       ],
       "settings": {
         "dart.flutterSdkPath": "/opt/flutter",
+        "dart.sdkPath": "/opt/flutter/bin",
         "dart.lineLength": 100,
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
           "source.organizeImports": "explicit"
+        },
+        "files.exclude": {
+          "**/.dart_tool": false,
+          "**/.flutter-plugins": false,
+          "**/.flutter-plugins-dependencies": false
         }
       }
     }

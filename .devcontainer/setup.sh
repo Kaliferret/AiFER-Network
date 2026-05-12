@@ -3,6 +3,17 @@ set -e
 
 echo "🚀 Setting up Flutter development environment..."
 
+# Detect workspace directory
+if [ -n "$WORKSPACE_FOLDER" ]; then
+    WORKSPACE="$WORKSPACE_FOLDER"
+elif [ -n "$GITHUB_WORKSPACE" ]; then
+    WORKSPACE="$GITHUB_WORKSPACE"
+else
+    WORKSPACE="$(pwd)"
+fi
+
+echo "📁 Workspace detected at: $WORKSPACE"
+
 # Install system dependencies
 echo "📦 Installing system dependencies..."
 sudo apt-get update
@@ -24,7 +35,7 @@ sudo apt-get install -y \
     openjdk-17-jdk
 
 # Install Flutter
-echo "🐦 Installing Flutter..."
+echo "🦋 Installing Flutter..."
 FLUTTER_VERSION="3.24.0"
 cd /opt
 if [ ! -d "flutter" ]; then
@@ -37,7 +48,7 @@ export PATH="$PATH:/opt/flutter/bin"
 echo 'export PATH="$PATH:/opt/flutter/bin"' >> /home/vscode/.bashrc
 
 # Pre-download Flutter dependencies
-echo "📥 Pre-downloading Flutter dependencies..."
+echo "🔥 Pre-downloading Flutter dependencies..."
 flutter precache
 
 # Install Android SDK
@@ -47,14 +58,16 @@ mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
 
 # Download and install Android Command Line Tools
 cd /tmp
-wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+if [ ! -f "commandlinetools-linux-11076708_latest.zip" ]; then
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+fi
 unzip -q commandlinetools-linux-11076708_latest.zip
 mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest
 mv cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest/
 
 export ANDROID_HOME=$ANDROID_SDK_ROOT
 export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"
-echo 'export ANDROID_HOME=/opt/android-sdk' >> /home/vscode/.bashrc
+echo "export ANDROID_HOME=/opt/android-sdk" >> /home/vscode/.bashrc
 echo 'export PATH="$PATH:/opt/android-sdk/cmdline-tools/latest/bin"' >> /home/vscode/.bashrc
 
 # Accept Android SDK licenses
@@ -70,16 +83,23 @@ sdkmanager --install "platforms;android-33" "platforms;android-35"
 sdkmanager --install "build-tools;33.0.0" "build-tools;35.0.0"
 
 # Set environment variables
-echo 'export PATH="$PATH:$ANDROID_HOME/platform-tools"' >> /home/vscode/.bashrc
-echo 'export PATH="$PATH:$ANDROID_HOME/build-tools/34.0.0"' >> /home/vscode/.bashrc
+echo "export PATH=\"$PATH:$ANDROID_HOME/platform-tools\"" >> /home/vscode/.bashrc
+echo "export PATH=\"$PATH:$ANDROID_HOME/build-tools/34.0.0\"" >> /home/vscode/.bashrc
 
 # Create local.properties file
-echo "📝 Creating local.properties..."
-echo "sdk.dir=$ANDROID_SDK_ROOT" > $GITHUB_WORKSPACE/local.properties || echo "sdk.dir=$ANDROID_SDK_ROOT" > /workspace/local.properties
+echo "🏗️  Creating local.properties..."
+if [ -f "$WORKSPACE/local.properties" ]; then
+    echo "local.properties already exists"
+else
+    echo "sdk.dir=$ANDROID_SDK_ROOT" > "$WORKSPACE/local.properties"
+    echo "Created local.properties at $WORKSPACE/local.properties"
+fi
+
+# Ensure workspace is correct
+cd "$WORKSPACE"
 
 # Install project dependencies
 echo "📚 Installing Flutter project dependencies..."
-cd $GITHUB_WORKSPACE || cd /workspace/fernetwork-main
 flutter pub get
 
 # Verify Flutter installation
@@ -93,7 +113,9 @@ flutter analyze
 echo "✨ Setup complete! Your Flutter environment is ready."
 echo ""
 echo "To build the APK, run:"
-echo "  flutter build apk"
+echo "  cd $WORKSPACE"
+echo "  flutter build apk --release --verbose"
 echo ""
 echo "To run the app in debug mode, run:"
+echo "  cd $WORKSPACE"
 echo "  flutter run"
