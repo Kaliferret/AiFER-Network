@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import '../../theme/app_theme.dart';
-import '../../routes/app_routes.dart';
 
 /// FER Vision Screen
 /// Explains the deep purpose of the FER Network in an inspiring, clear way.
@@ -139,10 +138,7 @@ class FerVisionScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.networkDashboard,
-                  );
+                  Navigator.pushReplacementNamed(context, '/network_dashboard');
                 },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 18),
@@ -158,7 +154,6 @@ class FerVisionScreen extends StatelessWidget {
             Center(
               child: TextButton(
                 onPressed: () {
-                  // Could open settings or crypto info later
                   Navigator.pop(context);
                 },
                 child: Text(
