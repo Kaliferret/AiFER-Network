@@ -108,8 +108,8 @@ jobs:
         with:
           name: fer-network-release-apk
           path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            android/app/build/outputs/apk/release/app-release.apk
+            **/app-release.apk
+            **/*.apk
           retention-days: 90
           if-no-files-found: warn
           
@@ -123,8 +123,8 @@ jobs:
         with:
           name: fer-network-appbundle
           path: |
-            build/app/outputs/bundle/release/app-release.aab
-            android/app/build/outputs/bundle/release/app-release.aab
+            **/app-release.aab
+            **/*.aab
           retention-days: 90
           if-no-files-found: warn
           
