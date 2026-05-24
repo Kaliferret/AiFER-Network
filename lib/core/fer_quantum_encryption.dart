@@ -5,24 +5,44 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
 /// FER Quantum-Resistant Encryption Service
-/// Implements lattice-based post-quantum cryptography for secure communication
+///
+/// ⚠️ IMPORTANT DISCLAIMER (for the deep purpose of this app):
+/// This is an **educational and experimental implementation** of lattice-based
+/// post-quantum cryptography concepts. It demonstrates the *idea* of
+/// quantum-resistant messaging using simplified modular arithmetic,
+/// error vectors, and SHA-256 for signatures.
+///
+/// It is NOT a production-grade post-quantum cryptography library
+/// (no real Kyber, Dilithium, NTRU, or formal security proofs).
+///
+/// Purpose: To explore and prototype resilient, private communication
+/// in a fun, ferret-themed network while preparing conceptually for a
+/// post-quantum future. Real deployment would use audited PQC libraries.
+///
+/// This aligns with the core vision: private, offline-first, future-proof
+/// networking for autonomous identities (AiFERiD).
+///
+/// Lattice parameters (for illustration):
+/// - Dimension: 512
+/// - Modulus: 4096
+/// - Error bound: 3
 class FERQuantumEncryption {
   static FERQuantumEncryption? _instance;
   static FERQuantumEncryption get instance => _instance ??= FERQuantumEncryption._();
   FERQuantumEncryption._();
 
-  // Lattice-based encryption parameters
+  // Lattice-based encryption parameters (educational)
   static const int latticeDimension = 512;
   static const int modulus = 4096;
   static const int errorBound = 3;
-  
-  /// Generate quantum-resistant key pair
+
+  /// Generate quantum-resistant key pair (educational implementation)
   Future<QuantumKeyPair> generateKeyPair() async {
     try {
       final random = math.Random.secure();
       final privateKey = _generateLatticePrivateKey(random);
       final publicKey = _derivePublicKey(privateKey);
-      
+
       return QuantumKeyPair(
         privateKey: privateKey,
         publicKey: publicKey,
@@ -33,8 +53,8 @@ class FERQuantumEncryption {
       rethrow;
     }
   }
-  
-  /// Encrypt data using quantum-resistant algorithm
+
+  /// Encrypt data using quantum-resistant algorithm (educational)
   Future<QuantumCiphertext> encrypt(
     Uint8List data,
     QuantumPublicKey publicKey,
@@ -43,7 +63,7 @@ class FERQuantumEncryption {
       final ephemeralKey = await _generateEphemeralKey();
       final sharedSecret = _computeSharedSecret(ephemeralKey, publicKey);
       final ciphertext = _latticeEncrypt(data, sharedSecret);
-      
+
       return QuantumCiphertext(
         data: ciphertext,
         ephemeralKey: ephemeralKey,
@@ -55,8 +75,8 @@ class FERQuantumEncryption {
       rethrow;
     }
   }
-  
-  /// Decrypt data using quantum-resistant algorithm
+
+  /// Decrypt data using quantum-resistant algorithm (educational)
   Future<Uint8List> decrypt(
     QuantumCiphertext ciphertext,
     QuantumPrivateKey privateKey,
@@ -66,38 +86,38 @@ class FERQuantumEncryption {
         ciphertext.ephemeralKey,
         _derivePublicKey(privateKey),
       );
-      
+
       final isValid = await _verifyQuantumSignature(
         ciphertext.data,
         ciphertext.signature,
         ciphertext.ephemeralKey,
       );
-      
+
       if (!isValid) {
         throw QuantumEncryptionException('Invalid quantum signature');
       }
-      
+
       return _latticeDecrypt(ciphertext.data, sharedSecret);
     } catch (e) {
       debugPrint('❌ Failed to decrypt data: $e');
       rethrow;
     }
   }
-  
-  /// Generate lattice-based private key
+
+  // ... (rest of the implementation remains the same - educational lattice math)
+
   QuantumPrivateKey _generateLatticePrivateKey(math.Random random) {
     final coefficients = List<int>.generate(
       latticeDimension,
       (i) => random.nextInt(modulus),
     );
-    
+
     return QuantumPrivateKey(
       coefficients: coefficients,
       errorVector: _generateErrorVector(random),
     );
   }
-  
-  /// Derive public key from private key
+
   QuantumPublicKey _derivePublicKey(QuantumPrivateKey privateKey) {
     final publicKey = _latticeKeyDerivation(privateKey);
     return QuantumPublicKey(
@@ -105,52 +125,48 @@ class FERQuantumEncryption {
       commitment: _computeCommitment(publicKey),
     );
   }
-  
-  /// Lattice-based encryption algorithm
+
   Uint8List _latticeEncrypt(Uint8List data, List<int> secret) {
     final encrypted = <int>[];
     final random = math.Random.secure();
-    
+
     for (int i = 0; i < data.length; i++) {
       final randomCoeff = random.nextInt(modulus);
       final messageCoeff = data[i] % modulus;
       final noiseCoeff = random.nextInt(errorBound * 2) - errorBound;
-      
+
       final encryptedCoeff = (randomCoeff * secret[i % secret.length] +
-          messageCoeff + noiseCoeff) % modulus;
-      
+              messageCoeff + noiseCoeff) %
+          modulus;
+
       encrypted.add(encryptedCoeff);
     }
-    
+
     return Uint8List.fromList(encrypted);
   }
-  
-  /// Lattice-based decryption algorithm
+
   Uint8List _latticeDecrypt(Uint8List ciphertext, List<int> secret) {
     final decrypted = <int>[];
-    
+
     for (int i = 0; i < ciphertext.length; i++) {
       final cipherCoeff = ciphertext[i];
       final secretCoeff = secret[i % secret.length];
-      
+
       final decryptedCoeff = (cipherCoeff - secretCoeff) % modulus;
       decrypted.add(decryptedCoeff);
     }
-    
+
     return Uint8List.fromList(decrypted);
   }
-  
-  /// Generate error vector for lattice encryption
+
   List<int> _generateErrorVector(math.Random random) {
     return List<int>.generate(
       latticeDimension ~/ 2,
       (i) => random.nextInt(errorBound * 2 + 1) - errorBound,
     );
   }
-  
-  /// Compute lattice key derivation
+
   List<int> _latticeKeyDerivation(QuantumPrivateKey privateKey) {
-    // Simplified lattice-based key derivation
     final derived = <int>[];
     for (int i = 0; i < latticeDimension; i++) {
       int value = privateKey.coefficients[i];
@@ -161,47 +177,43 @@ class FERQuantumEncryption {
     }
     return derived;
   }
-  
-  /// Compute commitment for key verification
+
   String _computeCommitment(List<int> publicKey) {
     final data = publicKey.join(',');
     final hash = sha256.convert(utf8.encode(data));
     return hash.toString();
   }
-  
-  /// Generate ephemeral key for encryption
+
   Future<QuantumPublicKey> _generateEphemeralKey() async {
     final random = math.Random.secure();
     final privateKey = _generateLatticePrivateKey(random);
     return _derivePublicKey(privateKey);
   }
-  
-  /// Compute shared secret using key exchange
+
   List<int> _computeSharedSecret(
     QuantumPublicKey publicKey1,
     QuantumPublicKey publicKey2,
   ) {
-    // Simplified ECDH-like computation for lattice keys
     final secret = <int>[];
-    final minLength = math.min(publicKey1.coefficients.length, publicKey2.coefficients.length);
-    
+    final minLength =
+        math.min(publicKey1.coefficients.length, publicKey2.coefficients.length);
+
     for (int i = 0; i < minLength; i++) {
-      final sharedValue = (publicKey1.coefficients[i] * publicKey2.coefficients[i]) % modulus;
+      final sharedValue =
+          (publicKey1.coefficients[i] * publicKey2.coefficients[i]) % modulus;
       secret.add(sharedValue);
     }
-    
+
     return secret;
   }
-  
-  /// Create quantum signature
+
   Future<String> _quantumSign(Uint8List data, QuantumPublicKey privateKey) async {
     final dataHash = sha256.convert(data);
     final combined = '${dataHash.toString()}${privateKey.commitment}';
     final signature = sha256.convert(utf8.encode(combined));
     return signature.toString();
   }
-  
-  /// Verify quantum signature
+
   Future<bool> _verifyQuantumSignature(
     Uint8List data,
     String signature,
@@ -214,12 +226,12 @@ class FERQuantumEncryption {
   }
 }
 
-/// Quantum-resistant key pair
+// Data classes remain unchanged
 class QuantumKeyPair {
   final QuantumPrivateKey privateKey;
   final QuantumPublicKey publicKey;
   final DateTime timestamp;
-  
+
   QuantumKeyPair({
     required this.privateKey,
     required this.publicKey,
@@ -227,35 +239,32 @@ class QuantumKeyPair {
   });
 }
 
-/// Quantum private key
 class QuantumPrivateKey {
   final List<int> coefficients;
   final List<int> errorVector;
-  
+
   QuantumPrivateKey({
     required this.coefficients,
     required this.errorVector,
   });
 }
 
-/// Quantum public key
 class QuantumPublicKey {
   final List<int> coefficients;
   final String commitment;
-  
+
   QuantumPublicKey({
     required this.coefficients,
     required this.commitment,
   });
 }
 
-/// Quantum encrypted ciphertext
 class QuantumCiphertext {
   final Uint8List data;
   final QuantumPublicKey ephemeralKey;
   final String signature;
   final DateTime timestamp;
-  
+
   QuantumCiphertext({
     required this.data,
     required this.ephemeralKey,
@@ -264,11 +273,10 @@ class QuantumCiphertext {
   });
 }
 
-/// Quantum encryption exception
 class QuantumEncryptionException implements Exception {
   final String message;
   QuantumEncryptionException(this.message);
-  
+
   @override
   String toString() => 'QuantumEncryptionException: $message';
 }
