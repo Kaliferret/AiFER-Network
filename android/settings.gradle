@@ -23,18 +23,3 @@ plugins {
 }
 
 include ":app"
-
-// Force all subprojects to use consistent SDK versions
-allprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            android {
-                compileSdkVersion 35
-                defaultConfig {
-                    minSdkVersion 21
-                    targetSdkVersion 35
-                }
-            }
-        }
-    }
-}
