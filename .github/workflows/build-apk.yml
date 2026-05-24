@@ -33,17 +33,17 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.24.5'
-          cache: false   # DISABLED to force fresh resolution
+          cache: false
           
-      - name: Nuke pub cache for app_links (brute force fix)
+      - name: Nuke everything (pub cache + lockfile)
         run: |
-          rm -rf ${HOME}/.pub-cache/hosted/pub.dev/app_links-*
+          rm -rf ${HOME}/.pub-cache
           rm -f pubspec.lock
-          echo "Nuked old app_links cache and pubspec.lock"
+          echo "Nuked entire pub cache and lockfile for clean resolution"
 
-      - name: Get dependencies (clean)
+      - name: Get dependencies (clean + verbose)
         run: |
-          flutter pub get
+          flutter pub get --verbose
 
       - name: Create local.properties
         run: |
@@ -53,14 +53,6 @@ jobs:
       - name: Accept Android Licenses
         run: |
           yes | flutter doctor --android-licenses || true
-
-      - name: Patch any remaining old app_links build.gradle (last resort)
-        run: |
-          find ${HOME}/.pub-cache -name "build.gradle" -path "*app_links*" 2>/dev/null | while read gradle_file; do
-            echo "Patching $gradle_file..."
-            sed -i 's/flutter\.compileSdkVersion/34/g' "$gradle_file" || true
-            sed -i 's/flutter\.targetSdkVersion/34/g' "$gradle_file" || true
-          done
 
       - name: Fix Android build configuration
         run: |
