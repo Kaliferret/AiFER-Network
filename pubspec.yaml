@@ -1,7 +1,7 @@
 name: fernetwork
 description: FER Network - Quantum-resistant (lattice crypto) messaging, blockchain wallet, frequency-hopping telemetry & offline-first AiFER OS protocol. Beautiful Base44 dark UI for resilient private networking. Co-created with human creativity & AI.
 publish_to: none
-version: 1.4.1+11
+version: 1.4.2+12
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  # Explicit direct dependency to force modern version and fix Gradle 'unknown property flutter' error
+  app_links: ^7.0.0
 
   sizer: ^2.0.15
   flutter_svg: ^2.0.10
@@ -46,7 +49,6 @@ flutter:
     - assets/
     - assets/images/
 
-# CRITICAL FIX: Force modern app_links to resolve Gradle 'unknown property flutter' error
-# with Flutter 3.24.5 + AGP 8+
+# Safety net
 dependency_overrides:
   app_links: ^7.0.0
