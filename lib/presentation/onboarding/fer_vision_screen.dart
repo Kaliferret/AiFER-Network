@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-import '../../../theme/app_theme.dart';
-import '../../../routes/app_routes.dart';
+import '../../theme/app_theme.dart';
+import '../../routes/app_routes.dart';
 
 /// FER Vision Screen
 /// Explains the deep purpose of the FER Network in an inspiring, clear way.
