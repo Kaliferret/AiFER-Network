@@ -41,10 +41,8 @@ jobs:
           rm -f pubspec.lock
           echo "Nuked old app_links cache and pubspec.lock"
 
-      - name: Get dependencies (force major versions)
+      - name: Get dependencies (clean)
         run: |
-          flutter pub get
-          flutter pub upgrade --major-versions || true
           flutter pub get
 
       - name: Create local.properties
