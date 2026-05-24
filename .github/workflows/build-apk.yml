@@ -79,7 +79,7 @@ jobs:
           echo "android.enableJetifier=true" >> android/gradle.properties
           
       - name: Analyze code for errors
-        run: flutter analyze --fatal-infos --fatal-warnings || echo "Analyze completed with notes (non-blocking for now)"
+        run: flutter analyze --fatal-infos --fatal-warnings || echo "Analyze completed with notes (non-blocking)"
         continue-on-error: true
         
       - name: Run tests
@@ -89,8 +89,9 @@ jobs:
       - name: Clean previous builds
         run: flutter clean
         
-      - name: Build APK (release)
+      - name: Build APK (release) - Verbose for debugging
         run: |
+          set -x
           echo "=== Building RELEASE APK ==="
           flutter build apk --release --verbose 2>&1 | tee build-release.log
           echo "=== Build Complete ==="
@@ -135,15 +136,15 @@ jobs:
       - name: Create Release Summary
         if: always()
         run: |
-          echo "## 📱 FER Network APK Build v1.1+" >> $GITHUB_STEP_SUMMARY
+          echo "## 📱 FER Network APK Build v1.2+ (Purpose Aligned)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Build Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
         
-      - name: Upload build logs if failed
-        if: failure()
+      - name: Upload build logs (always, for debugging)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-logs
