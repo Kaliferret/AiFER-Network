@@ -1,36 +1,38 @@
 # FER Network Changelog
 
-All notable changes to the FER Network Flutter app (AiFER-Network / fernetwork).
+All notable changes to the FER Network Flutter app.
+
+## [1.2.0] - 2026-05-24 — Purpose-Aligned Improvements
+
+### Added
+- **FerVisionScreen** (`lib/presentation/onboarding/fer_vision_screen.dart`): Beautiful, inspiring screen that clearly explains the *deep reason and purpose* of the app:
+  - "Een autonoom netwerk voor ferrets & mensen"
+  - Quantum-bestendig, offline-first, privé, AI-co-created.
+  - Sections on resilience, post-quantum concepts, ferret identity (AiFERiD), and playful usability.
+  - Subtle "Co-created with human creativity & Claude" credits.
+  - Accessible via new route `/fer_vision`.
+
+- Clear **educational/experimental disclaimer** added to `fer_quantum_encryption.dart`:
+  - Explicitly states this is a simplified lattice implementation for prototyping and learning.
+  - Aligns with the deep purpose: honest transparency about what the advanced crypto really is.
+
+### Improved
+- **Transparency on deep purpose**: The vision of private, resilient, post-quantum networking for autonomous identities is now explicit and beautiful instead of implicit.
+- Routes updated to include the new vision screen.
+- Documentation (this CHANGELOG + status README) updated to reflect the strengthened identity and purpose of the project.
+
+### Changed
+- Version conceptually advanced toward 1.2 with purpose-focused polish.
 
 ## [1.1.0] - 2026-05-24
 
 ### Added
-- Comprehensive improvements across **all fronts** for production-ready reliability:
-  - **Build & CI**: Fixed and hardened GitHub Actions artifact upload with glob patterns (`**/app-release.apk`). APK and AAB now reliably delivered on every successful build. Added stricter quality gates and test step.
-  - **Initialization & Robustness**: Enhanced main.dart init sequence with better error isolation, debug logging gated to debug mode, and clearer protocol stack boot (lattice encryption, frequency hopping, offline DB, AiFERiD auth).
-  - **Theming & UI**: Base44 dark theme (FER green #00FF88 + hot pink accents + tile palette) is fully consistent, Material 3, responsive via Sizer, GoogleFonts Inter. Custom error widget and route fallbacks improved.
-  - **Documentation**: Updated status guide, added this CHANGELOG, improved pubspec description to reflect advanced protocol features (quantum-resistant messaging, blockchain wallet, offline-first).
-  - **Versioning & Polish**: Bumped to 1.1.0. Core services (Supabase unified, blockchain wallet, offline-first DB, lattice crypto) verified robust with try-catch everywhere.
+- Comprehensive improvements across all fronts for production-ready reliability (see previous entries).
+- CHANGELOG.md created.
+- Workflow hardened with glob artifact upload, test step, and stricter analyze.
 
-### Changed
-- pubspec.yaml: Better description and version bump.
-- Workflow: More reliable artifact capture + quality improvements.
-- Error handling and logging: Cleaner in release builds.
+## [1.0.0] - Initial Release
 
-### Fixed
-- APK artifact upload path issue in CI (now uses `**/` globs).
-- Generic "new Flutter project" description replaced with accurate FER Network positioning.
+- Core FER Network with lattice encryption (educational), frequency hopping, offline-first, multi-auth, blockchain wallet, Base44 UI.
 
-## [1.0.0] - 2026-05-10 (Initial)
-
-- Initial public release of FER Network Flutter app.
-- Lattice-based quantum-resistant encryption (FERQuantumEncryption).
-- Frequency hopping telemetry.
-- Offline-first SQLite + Supabase sync.
-- Multi-layer auth (AiFERiD, Supabase, Google/Apple, local biometrics).
-- Blockchain wallet service.
-- Base44 dark gamified UI with dashboard tiles, messaging, gaming hub, file manager, voice monitoring.
-- GitHub Actions CI for APK/AAB builds.
-- 6+ screens with Phase 7 polish (shimmer, animations, error states).
-
-**Core Protocol Stack**: AiF package format, quantum encryption, frequency hopping, offline DB — designed for resilient, private, fun ferret-themed networking.
+**Core Vision**: A private, quantum-resistant, offline-first digital home for autonomous ferret identities — built with AI, beautiful enough to use daily, resilient enough for real life.
