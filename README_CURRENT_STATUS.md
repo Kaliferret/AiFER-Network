@@ -1,69 +1,51 @@
-# FER Network - Current Status & APK Access Guide (v1.1+)
+# FER Network - Current Status (v1.2+ Purpose Aligned)
 
-## 🎉 All Fronts Improved — v1.1.0 Ready!
+## 🎉 Diepe Doel + Visie Nu Expliciet & Mooi
 
-Your FER Network Flutter app is now **significantly hardened and production-ready for testing/sideloading**:
+De app is nu niet alleen technisch sterk, maar ook **duidelijk over waarom hij bestaat**.
 
 **Repository**: https://github.com/Kaliferret/AiFER-Network
-**Version**: 1.1.0+2 (see CHANGELOG.md for full details)
+**Huidige versie**: 1.2 met FerVisionScreen + crypto transparantie
 
-## ✅ What's Solid Now (All Fronts)
+## ✅ Wat nu écht goed werkt (diepe reden & doel)
 
-### 1. Build & CI (Fixed & Hardened)
-- ✅ GitHub Actions **reliably builds and uploads** APK + AAB artifacts on every run (glob patterns catch all output locations).
-- ✅ Workflow now includes `flutter test` step + stricter analyze (non-blocking notes for now).
-- ✅ APK_GUIDE.md + status docs updated.
-- Manual trigger or push to main → ~3-5 min → download `fer-network-release-apk` artifact.
+### 1. Visie & Identiteit (Nieuw & Krachtig)
+- ✅ **FerVisionScreen** toegevoegd: Prachtige, inspirerende uitleg van de diepe reden:
+  - "Een autonoom netwerk voor ferrets & mensen"
+  - Quantum-bestendig • Offline-first • Privé • AI-co-created
+  - Duidelijke secties over veerkracht, post-quantum concepten, AiFERiD identiteit en speelse bruikbaarheid.
+  - Subtiele credits: "Co-created with human creativity & Claude"
+- ✅ Route `/fer_vision` toegevoegd en klaar voor gebruik (bijv. vanuit dashboard of onboarding flow).
 
-### 2. App Initialization & Core Protocol (Robust)
-- ✅ Phase 4 stack boots first and reliably:
-  - FERQuantumEncryption (lattice-based quantum-resistant)
-  - OfflineFirstDatabase (SQLite + prefs, offline-first)
-  - AiFERiDAuthService + multi-auth layers
-  - FERFrequencyHopping (node telemetry)
-- ✅ All services wrapped in try-catch with clear debugPrint (gated in release).
-- ✅ Unified Supabase + enhanced services healthy.
-- ✅ Custom ErrorWidget + route fallbacks prevent crashes.
+### 2. Transparantie over Advanced Tech
+- ✅ Duidelijke disclaimer in `fer_quantum_encryption.dart`:
+  - "Educational and experimental implementation of lattice-based post-quantum concepts."
+  - Geen valse beloftes — past perfect bij het diepe doel van eerlijk experimenteren en prototypen.
 
-### 3. UI / Theme / UX (Base44 Polished)
-- ✅ Beautiful dark-first Base44 theme (FER green #00FF88, hot pink #FF006E, cyan, tile palette blue/pink/green/purple).
-- ✅ Material 3, rounded 20px cards, Inter typography, responsive Sizer.
-- ✅ Dashboard tiles, shimmer/animations (Phase 7), error states, loading polish present.
-- ✅ 6+ screens: NetworkDashboard, messaging (encrypted), wallet, gaming, files, voice monitoring.
+### 3. Build & CI (Al Gehard in v1.1)
+- ✅ APK + AAB worden nu betrouwbaar geleverd via GitHub Actions.
+- ✅ Workflow bevat test stap en glob artifact upload.
 
-### 4. Features & Data (Working End-to-End)
-- ✅ Lattice-encrypted messaging (offline-first capable).
-- ✅ Blockchain wallet with FER balance.
-- ✅ Frequency-hopping telemetry & network data.
-- ✅ File manager + import/share.
-- ✅ Gaming hub, sessions, stats.
-- ✅ Supabase sync + local SQLite offline resilience.
-- ✅ Auth: AiFERiD, Google, Apple, local biometrics, renewed/supabase layers.
+### 4. Core & UI (Al Uitstekend)
+- Base44 dark theme, offline-first DB, lattice (educational) + frequency hopping, multi-auth, wallet — allemaal robuust en met goede error handling.
 
-### 5. Android / Build Config
-- ✅ namespace com.fernetwork.app, targetSdk 35, multidex, proguard ready.
-- ✅ Release signing currently debug (easy sideload). Add keystore for Play Store later.
-- ✅ APK_GUIDE.md has local build instructions.
+## 🚀 Volgende Build Maken (Zoals Het Echt Moet)
 
-## 🚀 How to Get Your APK Right Now
+1. Zorg dat je laatste changes gepusht zijn (of pull de nieuwste main).
+2. Ga naar je repo → **Actions** tab.
+3. Selecteer **"Build FER Network APK"** workflow.
+4. Klik **Run workflow** → kies branch `main` → Run workflow.
+5. Wacht 3-5 minuten.
+6. Download het artifact **fer-network-release-apk**.
+7. Unzip en installeer `app-release.apk`.
 
-1. Go to **Actions** tab in the repo.
-2. Select **"Build FER Network APK"** → **Run workflow** (manual).
-3. Wait for green check (~3-5 min).
-4. Download artifact **fer-network-release-apk** → unzip → install `app-release.apk`.
-5. (Optional) Also grab the AAB for Play Store testing.
+De build bevat nu de nieuwe FerVisionScreen en de eerlijke crypto disclaimer — precies zoals het diepe doel vraagt.
 
-**Tip**: Enable "Unknown sources" on your Android device.
+## 🔮 Volgende Stappen (optioneel maar krachtig)
+- Hook de FerVisionScreen in als eerste launch ervaring of via een "Over FER" knop in settings/dashboard.
+- Bouw een simpele key backup/restore flow (seed phrase style) voor échte veerkracht.
+- Maak 1-2 dagelijkse praktische flows extreem eenvoudig (encrypted notes voor admin, one-tap messaging met partner).
 
-## 🔧 Next-Level Polish (Optional Future)
-- Add proper release keystore + Play Store signing config.
-- Expand widget tests (flutter test already wired).
-- Native splash screen + more micro-interactions.
-- Real lattice crypto library integration if simulation now.
-- iOS build workflow (currently Android-focused).
+De app is nu veel dichter bij zijn diepe ziel: een privé, veerkrachtig, toekomstbestendig digitaal thuis voor autonome ferrets — met eerlijke tech en een duidelijke, mooie visie.
 
-**Everything core works reliably now.** The app is fun, private, resilient, and beautiful. Sideloading the v1.1 APK will give you the full experience.
-
----
-
-**Happy ferreting! 🦡✨** (or whatever the FER spirit animal is)
+**Klaar voor de volgende build. Laten we het doen.**
