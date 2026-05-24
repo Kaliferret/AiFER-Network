@@ -31,12 +31,20 @@ android {
         multiDexEnabled true
     }
 
+    signingConfigs {
+        debug {
+            // Explicit debug signing config for CI builds.
+            // Flutter Gradle plugin + Android Gradle handle the default debug keystore automatically.
+            // This resolves "Keystore file not set for signing config release" errors in GitHub Actions.
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             shrinkResources false
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // TODO: Add your own signing config for the release build (Play Store / production).
+            // For now we use debug signing so the APK builds reliably in CI for testing/sideload.
             signingConfig = signingConfigs.debug
         }
     }
