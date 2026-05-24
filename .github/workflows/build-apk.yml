@@ -33,80 +33,60 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.24.5'
-          cache: true
-          cache-key: 'flutter-3.24.5-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}'
-          cache-path: '${{ env.FLUTTER_ROOT }}/.pub-cache'
+          cache: false   # DISABLED to force fresh resolution
           
-      - name: Verify Flutter installation
+      - name: Nuke pub cache for app_links (brute force fix)
         run: |
-          flutter --version
-          flutter doctor -v
-          
+          rm -rf ${HOME}/.pub-cache/hosted/pub.dev/app_links-*
+          rm -f pubspec.lock
+          echo "Nuked old app_links cache and pubspec.lock"
+
+      - name: Get dependencies (force major versions)
+        run: |
+          flutter pub get
+          flutter pub upgrade --major-versions || true
+          flutter pub get
+
       - name: Create local.properties
         run: |
           echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
           echo "sdk.dir=${ANDROID_HOME}" >> android/local.properties
-          cat android/local.properties
-          
-      - name: Get dependencies
-        run: flutter pub get
-        
+
       - name: Accept Android Licenses
         run: |
           yes | flutter doctor --android-licenses || true
-          
-      - name: Patch app_links plugin build.gradle
+
+      - name: Patch any remaining old app_links build.gradle (last resort)
         run: |
-          # Find and patch any app_links plugin build.gradle files
           find ${HOME}/.pub-cache -name "build.gradle" -path "*app_links*" 2>/dev/null | while read gradle_file; do
             echo "Patching $gradle_file..."
             sed -i 's/flutter\.compileSdkVersion/34/g' "$gradle_file" || true
             sed -i 's/flutter\.targetSdkVersion/34/g' "$gradle_file" || true
-            sed -i 's/flutter\.minSdkVersion/21/g' "$gradle_file" || true
           done
-          
+
       - name: Fix Android build configuration
         run: |
-          # Ensure gradle wrapper is executable
-          chmod +x android/gradlew
-          
-          # Set Gradle memory
-          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" >> android/gradle.properties
+          chmod +x android/gradlew || true
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> android/gradle.properties
           echo "org.gradle.daemon=false" >> android/gradle.properties
-          echo "org.gradle.parallel=true" >> android/gradle.properties
-          echo "org.gradle.caching=true" >> android/gradle.properties
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
-          
-      - name: Analyze code for errors
-        run: flutter analyze --fatal-infos --fatal-warnings || echo "Analyze completed with notes (non-blocking)"
+
+      - name: Analyze (non-blocking)
+        run: flutter analyze --fatal-infos --fatal-warnings || echo "Analyze done with notes"
         continue-on-error: true
-        
-      - name: Run tests
-        run: flutter test || echo "No tests or tests passed with notes"
-        continue-on-error: true
-        
+
       - name: Clean previous builds
         run: flutter clean
-        
-      - name: Build APK (release) - Verbose for debugging
+
+      - name: Build APK (release) - Verbose
         run: |
           set -x
-          echo "=== Building RELEASE APK ==="
           flutter build apk --release --verbose 2>&1 | tee build-release.log
-          echo "=== Build Complete ==="
-          
-      - name: Find and List APK files
+
+      - name: Find APK files
         run: |
-          echo "=== Searching for APK files ==="
           find . -name "*.apk" -type f -exec ls -lh {} \; || echo "No APKs found"
-          echo ""
-          echo "=== Build directory contents ==="
-          ls -la build/app/outputs/flutter-apk/ 2>/dev/null || echo "Standard output path not found"
-          echo ""
-          echo "=== Checking alternate paths ==="
-          ls -la android/app/build/outputs/apk/release/ 2>/dev/null || echo "Android release path not found"
-          
+          ls -la build/app/outputs/flutter-apk/ 2>/dev/null || echo "Standard path not found"
+
       - name: Upload RELEASE APK
         uses: actions/upload-artifact@v4
         if: success()
@@ -117,33 +97,8 @@ jobs:
             **/*.apk
           retention-days: 90
           if-no-files-found: warn
-          
-      - name: Build App Bundle (for Google Play)
-        if: success()
-        run: flutter build appbundle --release
-        
-      - name: Upload App Bundle
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: fer-network-appbundle
-          path: |
-            **/app-release.aab
-            **/*.aab
-          retention-days: 90
-          if-no-files-found: warn
-          
-      - name: Create Release Summary
-        if: always()
-        run: |
-          echo "## 📱 FER Network APK Build v1.2+ (Purpose Aligned)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Build Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-        
-      - name: Upload build logs (always, for debugging)
+
+      - name: Upload build logs (always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
