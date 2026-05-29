@@ -16,7 +16,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     steps:
       - name: Checkout code
@@ -36,15 +36,17 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Nuke all problematic caches (app_links + lockfile + gradle)
+      - name: Nuke all problematic caches + clean
         run: |
           rm -rf ~/.pub-cache/hosted/pub.dev/app_links-*
           rm -f pubspec.lock
           rm -rf ~/.gradle/caches
-          echo "✅ Nuked old caches and lockfile"
+          flutter clean || true
+          echo "✅ Nuked old caches, lockfile and Gradle cache"
 
-      - name: Flutter pub get
-        run: flutter pub get --verbose
+      - name: Flutter pub get (force modern app_links)
+        run: |
+          flutter pub get --verbose
 
       - name: Create local.properties
         run: |
@@ -54,13 +56,24 @@ jobs:
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses || true
 
-      - name: Build Release APK + AppBundle (STRICT - fails if APK missing)
-        id: build_step
+      - name: Generate debug keystore (if missing)
+        run: |
+          KEYSTORE_PATH="android/app/debug.keystore"
+          if [ ! -f "$KEYSTORE_PATH" ]; then
+            echo "Generating debug keystore..."
+            keytool -genkey -v -keystore "$KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" || true
+          fi
+
+      - name: Build Release APK + AppBundle (STRICT)
         run: |
           set -euo pipefail
           
           echo "=== [1/2] Building APK ==="
-          flutter build apk --release --verbose 2>&1 | tee build-release.log
+          flutter build apk --release --verbose 2>&1 | tee build-release.log || {
+            echo "❌ APK build failed. Last 100 lines of log:"
+            tail -100 build-release.log
+            exit 1
+          }
           
           echo ""
           echo "=== [2/2] Building AppBundle ==="
@@ -74,12 +87,12 @@ jobs:
             echo "✅✅✅ SUCCESS: APK found at $APK_PATH"
             ls -lh "$APK_PATH"
           else
-            echo "❌❌❌ FATAL: APK NOT FOUND at expected path!"
-            echo "Searching entire build directory for any .apk files..."
+            echo "❌❌❌ FATAL: APK NOT FOUND!"
+            echo "Searching for any .apk files..."
             find build -name "*.apk" -type f 2>/dev/null || true
             echo ""
-            echo "Last 80 lines of build log:"
-            tail -80 build-release.log
+            echo "Last 100 lines of build log:"
+            tail -100 build-release.log
             exit 1
           fi
 
