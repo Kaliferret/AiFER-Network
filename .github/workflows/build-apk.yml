@@ -10,10 +10,13 @@ on:
       - 'pubspec.yaml'
       - '.github/workflows/build-apk.yml'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
       - name: Checkout code
@@ -33,15 +36,15 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Nuke problematic app_links cache (brute force fix)
+      - name: Nuke all problematic caches (app_links + lockfile + gradle)
         run: |
           rm -rf ~/.pub-cache/hosted/pub.dev/app_links-*
           rm -f pubspec.lock
-          echo "Nuked old app_links cache and lockfile"
+          rm -rf ~/.gradle/caches
+          echo "✅ Nuked old caches and lockfile"
 
-      - name: Get dependencies
-        run: |
-          flutter pub get --verbose
+      - name: Flutter pub get
+        run: flutter pub get --verbose
 
       - name: Create local.properties
         run: |
@@ -51,24 +54,36 @@ jobs:
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses || true
 
-      - name: Build Release APK + AppBundle
-        id: build
+      - name: Build Release APK + AppBundle (STRICT - fails if APK missing)
+        id: build_step
         run: |
-          set -x
-          flutter build apk --release --verbose 2>&1 | tee build-release.log
-          flutter build appbundle --release --verbose 2>&1 | tee -a build-release.log
+          set -euo pipefail
           
-          # Verify APK exists
-          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
-            echo "✅ APK successfully built"
-            ls -lh build/app/outputs/flutter-apk/app-release.apk
+          echo "=== [1/2] Building APK ==="
+          flutter build apk --release --verbose 2>&1 | tee build-release.log
+          
+          echo ""
+          echo "=== [2/2] Building AppBundle ==="
+          flutter build appbundle --release --verbose 2>&1 | tee -a build-release.log || true
+          
+          echo ""
+          echo "=== VERIFYING OUTPUT ==="
+          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+          
+          if [ -f "$APK_PATH" ]; then
+            echo "✅✅✅ SUCCESS: APK found at $APK_PATH"
+            ls -lh "$APK_PATH"
           else
-            echo "❌ APK NOT FOUND!"
-            find build -name "*.apk" 2>/dev/null || true
+            echo "❌❌❌ FATAL: APK NOT FOUND at expected path!"
+            echo "Searching entire build directory for any .apk files..."
+            find build -name "*.apk" -type f 2>/dev/null || true
+            echo ""
+            echo "Last 80 lines of build log:"
+            tail -80 build-release.log
             exit 1
           fi
 
-      - name: Upload APK Artifact
+      - name: Upload Release APK + AAB
         uses: actions/upload-artifact@v4
         with:
           name: fer-network-release-apk
@@ -78,7 +93,7 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
-      - name: Upload Build Log (for debugging)
+      - name: Upload Build Log
         uses: actions/upload-artifact@v4
         if: always()
         with:
