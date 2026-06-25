@@ -1,115 +1,112 @@
-name: Build FER Network APK
+name: Build APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ main ]
-    paths:
-      - 'lib/**'
-      - 'android/**'
-      - 'pubspec.yaml'
-      - '.github/workflows/build-apk.yml'
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: read
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FLUTTER_VERSION: '3.24.5'
+  JAVA_VERSION: '17'
+  NODE_VERSION: '20'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 40
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
         with:
-          java-version: '17'
+          fetch-depth: 0
+
+      - name: Nuke caches
+        run: |
+          rm -rf ~/.pub-cache || true
+          rm -f pubspec.lock || true
+          rm -rf ~/.gradle/caches || true
+
+      - uses: actions/setup-java@v4
+        with:
           distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
           channel: 'stable'
           cache: false
 
-      - name: Nuke ALL problematic caches (aggressive)
-        run: |
-          rm -rf ~/.pub-cache
-          rm -f pubspec.lock
-          rm -rf ~/.gradle/caches
-          rm -rf build
-          flutter clean || true
-          echo "✅ Nuked pub-cache, lockfile, Gradle cache and build dir"
+      - name: Pub get
+        run: flutter pub get
 
-      - name: Flutter pub get (force modern resolution)
-        run: |
-          flutter pub get --verbose
+      - name: Build APK
+        run: flutter build apk --release
 
-      - name: Create local.properties
+      - name: Verify APK exists (fail hard)
         run: |
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
-          echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
-
-      - name: Accept Android Licenses
-        run: yes | flutter doctor --android-licenses || true
-
-      - name: Build Release APK + AppBundle (STRICT + diagnostics)
-        run: |
-          set -euo pipefail
-          
-          echo "=== [1/2] Building APK ==="
-          if flutter build apk --release --verbose 2>&1 | tee build-release.log; then
-            echo "✅ APK build command completed"
-          else
-            echo "❌ APK build FAILED"
-            echo "=== Last 120 lines of build log ==="
-            tail -120 build-release.log
+          APK=$(find build/app/outputs/flutter-apk -name "*-release.apk" | head -n1)
+          if [ ! -f "$APK" ]; then
+            echo "::error::No APK found"
             exit 1
           fi
-          
-          echo ""
-          echo "=== [2/2] Building AppBundle ==="
-          flutter build appbundle --release --verbose 2>&1 | tee -a build-release.log || true
-          
-          echo ""
-          echo "=== VERIFYING OUTPUT ==="
-          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
-          
-          if [ -f "$APK_PATH" ]; then
-            echo "✅✅✅ SUCCESS: APK found at $APK_PATH"
-            ls -lh "$APK_PATH"
-          else
-            echo "❌❌❌ FATAL: APK NOT FOUND at expected path!"
-            echo "Searching for any .apk files..."
-            find build -name "*.apk" -type f 2>/dev/null || true
-            echo ""
-            echo "=== Last 80 lines of build log ==="
-            tail -80 build-release.log
-            exit 1
-          fi
+          ls -lh "$APK"
 
-      - name: Upload Release APK + AAB
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: fer-network-release-apk
-          path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
-          retention-days: 30
+          name: aifer-release-apk
+          path: build/app/outputs/flutter-apk/*-release.apk
           if-no-files-found: error
+          retention-days: 30
 
-      - name: Upload Build Log
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: build-logs
+          name: aifer-build-logs
           path: build-release.log
-          retention-days: 7
+          retention-days: 14
+
+  verify-release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: aifer-release-apk
+          path: dist
+      - run: |
+          ls -la dist/
+          APK=$(find dist -name "*.apk" | head -n1)
+          test -s "$APK" || { echo "APK missing"; exit 1; }
+          unzip -l "$APK" | grep -q "AndroidManifest.xml" || { echo "Invalid APK"; exit 1; }
+          echo "✅ Artifact verified"
+
+  release:
+    needs: [build, verify-release]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: aifer-release-apk
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.apk
+          fail_on_unmatched_files: true
+          generate_release_notes: true
