@@ -4,41 +4,79 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def rawGitSha = System.getenv("GIT_SHA") ?: System.getenv("GITHUB_SHA") ?: "local"
+def shortGitSha = rawGitSha == "local" ? "local" : rawGitSha.take(7)
+
 android {
-    namespace = "com.fernetwork.app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "26.1.10909125"
+    namespace "org.aifer.app"
 
-    compileOptions {
-        coreLibraryDesugaringEnabled true
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+    // Legacy syntax is intentional for legacy plugins (package_info_plus, flutter_secure_storage, etc.)
+    compileSdkVersion flutter.compileSdkVersion
+    ndkVersion flutter.ndkVersion
 
     defaultConfig {
-        applicationId = "com.fernetwork.app"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = 13
-        versionName = "1.4.3"
+        applicationId "org.aifer.app"
+        minSdkVersion 23
+        targetSdkVersion flutter.targetSdkVersion
+        versionCode flutter.versionCode
+        versionName flutter.versionName
         multiDexEnabled true
     }
 
-    buildTypes {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    signingConfigs {
         release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties["keyAlias"]
+                keyPassword keystoreProperties["keyPassword"]
+                storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
+                storePassword keystoreProperties["storePassword"]
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+
+        release {
+            signingConfig keystorePropertiesFile.exists()
+                    ? signingConfigs.release
+                    : signingConfigs.debug
+
             minifyEnabled false
             shrinkResources false
-            // Use debug signing for CI / sideload builds (no keystore secrets needed)
-            signingConfig signingConfigs.debug
+
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro"
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            if (output.outputFileName != null && output.outputFileName.endsWith(".apk")) {
+                outputFileName = "aifer-${variant.buildType.name}-${variant.versionName}-${shortGitSha}.apk"
+            }
         }
     }
 }
 
-dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
-    implementation 'androidx.multidex:multidex:2.0.1'
+flutter {
+    source "../.."
 }
