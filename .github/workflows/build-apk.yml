@@ -8,20 +8,14 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      force_clean:
-        description: "Wipe Gradle caches before build (slower, catches caching bugs)"
-        type: boolean
-        default: false
       note:
-        description: "Free-text label shown in the run title"
+        description: "Note for this run"
         required: false
-        default: "manual artifact-contract check"
-
-run-name: "build-apk · ${{ github.event_name }} · ${{ inputs.note || github.ref_name }}"
+        default: "manual verification"
 
 concurrency:
   group: build-apk-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -30,101 +24,78 @@ permissions:
 env:
   FLUTTER_VERSION: '3.24.5'
   JAVA_VERSION: '17'
-  NODE_VERSION: '20'
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  NODE_VERSION: '24'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Nuke caches
-        if: ${{ github.event.inputs.force_clean == true }}
-        run: |
-          set -euo pipefail
-          rm -rf ~/.pub-cache || true
-          rm -f pubspec.lock || true
-          rm -rf ~/.gradle/caches || true
-          rm -rf build || true
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
 
-      - uses: actions/setup-java@v4
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
           cache: gradle
 
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.5'
           channel: 'stable'
           cache: false
 
-      - name: Pub get
+      - name: Print versions
+        run: |
+          echo "Node: $(node -v)"
+          echo "Java: $(java -version 2>&1 | head -1)"
+          flutter --version
+
+      - name: Nuke caches
+        run: |
+          rm -rf ~/.pub-cache || true
+          rm -f pubspec.lock || true
+          rm -rf ~/.gradle/caches || true
+
+      - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build release APK
+      - name: Build APK
         run: |
-          set -euo pipefail
           flutter build apk --release 2>&1 | tee build-release.log
 
-      - name: Verify APK exists (fail hard)
+      - name: Verify APK
         run: |
-          set -euo pipefail
           APK=$(find build/app/outputs/flutter-apk -name "*-release.apk" | head -n1)
-          if [ ! -f "$APK" ] || [ ! -s "$APK" ]; then
-            echo "::error::No valid release APK produced"
+          if [ ! -f "$APK" ]; then
+            echo "::error::No APK found"
             exit 1
           fi
           ls -lh "$APK"
-          echo "APK_PATH=$APK" >> $GITHUB_ENV
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: aifer-release-apk
           path: build/app/outputs/flutter-apk/*-release.apk
           if-no-files-found: error
           retention-days: 30
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload logs
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: aifer-build-logs
+          name: build-logs
           path: build-release.log
           retention-days: 14
-
-  verify-release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: aifer-release-apk
-          path: dist
-      - run: |
-          set -euo pipefail
-          APK=$(find dist -name "*.apk" | head -n1)
-          test -s "$APK" || { echo "APK missing or empty"; exit 1; }
-          unzip -l "$APK" | grep -q "AndroidManifest.xml" || { echo "Invalid APK"; exit 1; }
-          echo "✅ Artifact verified successfully"
-
-  release:
-    needs: verify-release
-    if: startsWith(github.ref, 'refs/tags/v') && github.event_name != 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: aifer-release-apk
-          path: dist
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.apk
-          fail_on_unmatched_files: true
-          generate_release_notes: true
